@@ -40,6 +40,7 @@
             #pkgs.spotify # uses slow internet archive 
             pkgs.teams
             pkgs.slack
+            pkgs.gh
           ];
 
           # Auto upgrade nix package and the daemon service.
