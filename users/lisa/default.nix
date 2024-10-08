@@ -4,8 +4,26 @@
   home.stateVersion = "24.05"; # Please read the comment before changing.
 
   home.packages = [
-
+    pkgs.oh-my-zsh
   ];
+
+  programs.zsh = {
+    enable = true;
+    shellAliases = {
+      update = "nix run nix-darwin -- switch --flake ~/.config/nix-config";
+    };
+    oh-my-zsh = {
+      enable = true;
+      plugins = [
+        "git"
+        "1password"
+        "battery"
+        "gh"
+        "dotnet"
+      ];
+      theme = "agnoster";
+    };
+  };
 
   programs.git = {
     enable = true;
