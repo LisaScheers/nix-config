@@ -8,6 +8,9 @@
 
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
 
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
   };
 
   outputs =
@@ -16,6 +19,7 @@
       nix-darwin,
       nixpkgs,
       nix-homebrew,
+      home-manager,
     }:
     let
       configuration =
@@ -103,6 +107,11 @@
             };
           };
 
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+
+          home-manager.users.lisa = import ./users/lisa/default.nix;
+
           nix-homebrew = {
             # Install Homebrew under the default prefix
             enable = true;
@@ -122,6 +131,8 @@
       darwinConfigurations."Lisas-MacBook-Pro-2" = nix-darwin.lib.darwinSystem {
         modules = [
           nix-homebrew.darwinModules.nix-homebrew
+          home-manager.darwinModules.home-manager
+
           configuration
         ];
       };
