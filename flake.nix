@@ -25,6 +25,10 @@
       configuration =
         { pkgs, ... }:
         {
+          users.users.lisa = {
+            name = "lisa";
+            home = "/Users/lisa";
+          };
 
           nixpkgs.config.allowUnfree = true;
 
@@ -109,7 +113,7 @@
 
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-
+          home-manager.backupFileExtension = "backup";
           home-manager.users.lisa = import ./users/lisa/default.nix;
 
           nix-homebrew = {
