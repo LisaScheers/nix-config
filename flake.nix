@@ -46,7 +46,7 @@
             #pkgs._1password-gui # broken due to needed to be in /Applications
             pkgs._1password
             #pkgs.spotify # uses slow internet archive 
-            pkgs.teams
+            #pkgs.teams # old version
             pkgs.slack
             pkgs.gh
           ];
@@ -95,6 +95,7 @@
               "1password"
               "arc"
               "grammarly-desktop"
+              "microsoft-office-businesspro"
             ];
             brews = [
               "mas"
