@@ -100,6 +100,7 @@
               "arc"
               "grammarly-desktop"
               "microsoft-office-businesspro"
+              "dbngin"
             ];
             brews = [
               "mas"
