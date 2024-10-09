@@ -49,6 +49,11 @@
     };
   };
 
+  programs.nushell = {
+    enable = true;
+    
+  };
+
   home.file = {
     _1password_ssh = {
       enable = true;

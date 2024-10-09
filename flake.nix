@@ -49,6 +49,10 @@
             #pkgs.teams # old version
             pkgs.slack
             pkgs.gh
+            pkgs.nodejs_20
+            #pkgs.dotnetCorePackages.dotnet_9.sdk # warning no build cache, building from source, takes a loooooong time
+            #pkgs.dotnetCorePackages.dotnet_8.sdk # warning no build cache, building from source, takes a loooooong time
+            pkgs.dotnet-sdk_8
           ];
 
           # Auto upgrade nix package and the daemon service.
