@@ -1,4 +1,7 @@
-{ config, pkgs, ... }:
+{
+  pkgs,
+  ...
+}:
 {
 
   home.stateVersion = "24.05"; # Please read the comment before changing.
@@ -12,6 +15,10 @@
     shellAliases = {
       update = "nix run nix-darwin -- switch --flake ~/.config/nix-config";
     };
+    initExtra = ''
+      export PNPM_HOME=/Users/lisa/.config/pnpm
+      export PATH="$PATH:$PNPM_HOME:/Users/lisa/.dotnet"
+    '';
     oh-my-zsh = {
       enable = true;
       plugins = [
@@ -51,8 +58,20 @@
 
   programs.nushell = {
     enable = true;
-    
+
   };
+
+  programs.alacritty = {
+    enable = true;
+    settings = {
+      window.dimensions = {
+        lines = 40;
+        columns = 120;
+      };
+    };
+  };
+
+  programs.direnv.enable = true;
 
   home.file = {
     _1password_ssh = {
@@ -63,10 +82,10 @@
       '';
       target = ".ssh/1password";
     };
-    _1password_ssh_agent_config= {
+    _1password_ssh_agent_config = {
       enable = true;
       target = ".config/1Password/ssh/agent.toml";
-      text= ''
+      text = ''
         # managed by home-manager do not edit directly
         [[ssh-keys]]
         vault = "Cloudway"

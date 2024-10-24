@@ -30,6 +30,14 @@
             home = "/Users/lisa";
           };
 
+          nixpkgs.overlays = [
+            (self: super: {
+              pnpm = super.pnpm.override {
+                nodejs = pkgs.nodejs_20;
+              };
+            })
+          ];
+
           nixpkgs.config.allowUnfree = true;
 
           # List packages installed in system profile. To search by name, run:
@@ -50,9 +58,12 @@
             pkgs.slack
             pkgs.gh
             pkgs.nodejs_20
+            pkgs.pnpm
+            pkgs.uutils-coreutils-noprefix
             #pkgs.dotnetCorePackages.dotnet_9.sdk # warning no build cache, building from source, takes a loooooong time
             #pkgs.dotnetCorePackages.dotnet_8.sdk # warning no build cache, building from source, takes a loooooong time
-            pkgs.dotnet-sdk_8
+            #pkgs.dotnet-sdk_8
+            pkgs.just
           ];
 
           # Auto upgrade nix package and the daemon service.
@@ -101,6 +112,7 @@
               "grammarly-desktop"
               "microsoft-office-businesspro"
               "dbngin"
+              #"dotnet-sdk@preview" # manual install for now
             ];
             brews = [
               "mas"
@@ -113,6 +125,7 @@
             masApps = {
               "Hass" = 1099568401;
               "WhatsApp Messenger" = 310633997;
+              "The Unarchiver" = 425424353;
 
             };
           };
