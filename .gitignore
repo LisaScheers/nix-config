@@ -1,0 +1,21 @@
+# Nix build artifacts
+result
+result-*
+.direnv/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor directories
+.idea/
+*.swp
+*.swo
+*~
+
+
+# Flake lock (optional - some prefer to commit it)
+# flake.lock
+
+

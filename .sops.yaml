@@ -1,0 +1,29 @@
+# SOPS configuration file
+# This file defines how secrets are encrypted and which keys can decrypt them
+
+# Creation rules - defines how new secrets are encrypted
+creation_rules:
+  # Default rule for all secrets
+  - path_regex: secrets/.*\.yaml$
+    encrypted_regex: ^(data|stringData|sops|age_keys)$
+    # Use age encryption (recommended for local development)
+    # Add your age public key here
+    # Generate with: age-keygen -o ~/.config/sops/age/keys.txt
+    # Then copy the public key (starts with age1...) and paste it below
+    # Example: age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    age: >-
+      age12pj207m3u8f5ql70rccf8pm9h4xuhcgeec94gfnum7583ys9dv2qwc38tv
+    # Alternative: use PGP keys
+    # pgp: >-
+    #   FINGERPRINT1
+    #   FINGERPRINT2
+
+# Key groups for organizing keys
+# Uncomment and configure as needed
+# key_groups:
+#   - age:
+#       - age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#     pgp:
+#       - FINGERPRINT1
+
+

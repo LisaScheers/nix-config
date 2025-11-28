@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "jnoortheen.nix-ide",
+    "kamadorueda.alejandra",
+    "nix-community.nix-env-selector"
+  ],
+  "unwantedRecommendations": []
+}
+
+
