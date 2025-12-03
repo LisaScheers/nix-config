@@ -17,5 +17,5 @@ result-*
 
 # Flake lock (optional - some prefer to commit it)
 # flake.lock
-
+.decrypted*
 
