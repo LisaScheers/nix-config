@@ -8,8 +8,6 @@
   # manage.
   home.username = "lisa";
 
-  home.homeDirectory = lib.mkForce "/Users/lisa"; # Darwin: /Users/lisa
-
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
   # introduces backwards incompatible changes.
@@ -22,6 +20,8 @@
     htop
     tree
     starship
+    pnpm
+    nodejs_24
   ];
 
   # Let Home Manager install and manage itself.
@@ -44,6 +44,11 @@
         hide_env_diff = true;
       };
     };
+  };
+
+  programs._1password-shell-plugins = {
+    enable = true;
+    plugins = with pkgs; [gh awscli2 cachix];
   };
 
   # Git configuration
@@ -70,6 +75,15 @@
       alias la='ls -A'
       alias l='ls -CF'
     '';
+  };
+
+  # env variables
+  home.sessionVariables = {
+    NIXPKGS_ALLOW_UNFREE = 1;
+    XDG_CONFIG_HOME = "$HOME/.config";
+    EDITOR = "code --wait";
+    VISUAL = "code --wait";
+    SOPS_AGE_KEY_CMD = "op item get ympq3ilboihqml7agfdb5ejxay --fields notesPlain --format=json | jq .value -r";
   };
 
   # Zsh configuration (common on macOS)

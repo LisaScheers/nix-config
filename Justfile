@@ -9,12 +9,12 @@ fmt:
     nix fmt
 
 # Rebuild Darwin configuration
-darwin host="Lisas-private-MacBook-Pro-3":
-    darwin-rebuild switch --flake .#"{{host}}"
+darwin host="Lisas-private-MacBook-Pro":
+    sudo darwin-rebuild switch --flake .#"{{host}}"
 
 # Rebuild NixOS configuration
 nixos host="nixos-host":
-    sudo nixos-rebuild switch --flake .#"{{host}}"
+    nixos-rebuild switch --flake .#"{{host}}"
 
 # Initialize secrets file with sops (run once before first use)
 sops-init file="secrets/secrets.yaml":
@@ -55,7 +55,7 @@ dev:
     nix develop
 
 # Build Darwin configuration (dry-run)
-darwin-build host="Lisas-private-MacBook-Pro-3":
+darwin-build host="Lisas-private-MacBook-Pro":
     darwin-rebuild build --flake .#"{{host}}"
 
 # Build NixOS configuration (dry-run)

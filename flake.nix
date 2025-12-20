@@ -23,6 +23,24 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    onepassword-shell-plugins = {
+      url = "github:1Password/shell-plugins";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    alejandra = {
+      url = "github:kamadorueda/alejandra/4.0.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    devenv.url = "github:cachix/devenv";
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
+
     # Optional: Declarative tap management
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
@@ -33,121 +51,35 @@
       flake = false;
     };
 
-    alejandra = {
-      url = "github:kamadorueda/alejandra/4.0.0";
-      inputs.nixpkgs.follows = "nixpkgs";
+    azure-functions = {
+      url = "github:Azure/homebrew-functions";
+      flake = false;
+    };
+    macos-cross-toolchains = {
+      url = "github:messense/homebrew-macos-cross-toolchains";
+      flake = false;
+    };
+    surrealdb-tap = {
+      url = "github:surrealdb/homebrew-tap";
+      flake = false;
     };
   };
 
-  outputs = inputs @ {
-    self,
-    nixpkgs,
-    nix-darwin,
-    home-manager,
-    sops-nix,
-    nix-homebrew,
-    nil,
-    homebrew-core,
-    homebrew-cask,
-    alejandra,
-    ...
-  }: let
-    # Helper function to get system-specific pkgs
-    pkgsFor = system:
-      import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
-  in {
-    # Darwin configurations
-    darwinConfigurations."Lisas-private-MacBook-Pro-3" = nix-darwin.lib.darwinSystem {
-      system = "aarch64-darwin";
-      specialArgs = {inherit inputs;};
-      modules = [
-        {
-          environment.systemPackages = [
-            alejandra.packages."aarch64-darwin".default
-            nil.packages."aarch64-darwin".nil
-          ];
-        }
-        ./hosts/darwin/Lisas-private-MacBook-Pro-3/default.nix
-        sops-nix.darwinModules.sops
-        home-manager.darwinModules.home-manager
-        {
-          home-manager = {
-            backupFileExtension = ".before-nix-home-manager";
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.lisa = {
-              imports = [./home/lisa/home.nix];
-            };
-            extraSpecialArgs = {inherit inputs;};
-          };
-        }
-        nix-homebrew.darwinModules.nix-homebrew
-        {
-          nix-homebrew = {
-            enable = true;
-            user = "lisa";
-            taps = {
-              "homebrew/homebrew-core" = homebrew-core;
-              "homebrew/homebrew-cask" = homebrew-cask;
-            };
-            mutableTaps = false;
-            enableRosetta = true;
-          };
-        }
+  outputs = inputs @ {flake-parts, ...}:
+    flake-parts.lib.mkFlake {inherit inputs;} (top @ {
+      config,
+      withSystem,
+      moduleWithSystem,
+      ...
+    }: {
+      imports = [
+        inputs.devenv.flakeModule
+        ./hosts/darwin/Lisas-private-MacBook-Pro/default.nix
+        ./devshell.nix
       ];
-    };
-    # Development shell
-    devShells."aarch64-darwin".default = let
-      pkgs = pkgsFor "aarch64-darwin";
-      nilPkgs = nil.packages."aarch64-darwin";
-      nix-darwin-pkgs = nix-darwin.packages."aarch64-darwin";
-    in
-      pkgs.mkShell {
-        buildInputs = with pkgs; [
-          just
-          sops
-          age
-          ssh-to-age
-          nilPkgs.nil
-          nix-darwin-pkgs.darwin-rebuild
-          inputs.home-manager.packages."aarch64-darwin".home-manager
-        ];
-        shellHook = ''
-          echo "Nix Config Development Shell"
-          echo "Available commands:"
-          echo "  just fmt          - Format all Nix files"
-          echo "  just darwin       - Rebuild Darwin configuration"
-          echo "  just nixos        - Rebuild NixOS configuration"
-          echo "  just sops         - Edit secrets"
-          echo "  just check        - Check flake"
-        '';
+      systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin"];
+      perSystem = {pkgs, ...}: {};
+      flake = {
       };
-
-    devShells."x86_64-linux".default = let
-      pkgs = pkgsFor "x86_64-linux";
-      nilPkgs = nil.packages."x86_64-linux";
-    in
-      pkgs.mkShell {
-        buildInputs = with pkgs; [
-          just
-          nilPkgs.nil
-          sops
-          age
-          ssh-to-age
-          inputs.home-manager.packages."x86_64-linux".home-manager
-        ];
-        shellHook = ''
-          echo "Nix Config Development Shell"
-          echo "Available commands:"
-          echo "  just fmt          - Format all Nix files"
-          echo "  just darwin       - Rebuild Darwin configuration"
-          echo "  just nixos        - Rebuild NixOS configuration"
-          echo "  just sops         - Edit secrets"
-          echo "  just check        - Check flake"
-        '';
-      };
-  };
+    });
 }
