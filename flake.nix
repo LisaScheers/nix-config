@@ -2,21 +2,22 @@
   description = "Multi-host Nix configuration for Darwin and NixOS";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
     nix-darwin = {
-      url = "github:nix-darwin/nix-darwin";
+      url = "https://flakehub.com/f/nix-darwin/nix-darwin/0.1.*";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "https://flakehub.com/f/nix-community/home-manager/0.1.*";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     sops-nix = {
-      url = "github:Mic92/sops-nix";
+      url = "https://flakehub.com/f/Mic92/sops-nix/0.1.*";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-homebrew = {
       url = "github:zhaofengli/nix-homebrew";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nil = {
       url = "github:oxalica/nil";
@@ -29,17 +30,27 @@
     };
 
     alejandra = {
-      url = "github:kamadorueda/alejandra/4.0.0";
+      url = "https://flakehub.com/f/kamadorueda/alejandra/4.0.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    disko = {
-      url = "github:nix-community/disko";
+    # disko = {
+    #   url = "https://flakehub.com/f/nix-community/disko/1.*";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
+    flake-parts = {
+      url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    devenv.url = "github:cachix/devenv";
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    flake-parts.url = "github:hercules-ci/flake-parts";
+    codex-cli-nix = {
+      url = "github:sadjow/codex-cli-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Optional: Declarative tap management
     homebrew-core = {
@@ -63,6 +74,16 @@
       url = "github:surrealdb/homebrew-tap";
       flake = false;
     };
+
+    withgraphite-tap = {
+      url = "github:withgraphite/homebrew-tap";
+      flake = false;
+    };
+
+    steipete-tap = {
+      url = "github:steipete/homebrew-tap";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {flake-parts, ...}:
@@ -76,9 +97,16 @@
         inputs.devenv.flakeModule
         ./hosts/darwin/Lisas-private-MacBook-Pro/default.nix
         ./devshell.nix
+        ./overlays.nix
       ];
       systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin"];
-      perSystem = {pkgs, ...}: {};
+      perSystem = {
+        pkgs,
+        inputs',
+        ...
+      }: {
+        formatter = inputs.alejandra.packages.alejandra;
+      };
       flake = {
       };
     });

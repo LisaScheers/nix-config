@@ -13,9 +13,17 @@
       ({
         pkgs,
         lib,
+        config,
         ...
       }: {
-        nix.enable = false;
+        nixpkgs = {
+          pkgs = withSystem config.nixpkgs.hostPlatform.system (
+            {pkgs, ...}:
+            # perSystem module arguments
+              pkgs
+          );
+        };
+        nix.enable = false; # managed by determinate nix installer
         # List packages installed in system profile. To search by name, run:
         # $ nix-env -qaP | grep wget
         environment.systemPackages = [
@@ -26,9 +34,11 @@
           pkgs.ssh-to-age
           inputs.alejandra.packages."aarch64-darwin".default
           inputs.nil.packages."aarch64-darwin".nil
+          pkgs.jdk21_headless
+          pkgs.codex
+          pkgs.ripgrep
         ];
 
-        nixpkgs.config.allowUnfree = true;
         # homebrew packages
         homebrew = {
           enable = true;
@@ -36,11 +46,13 @@
           onActivation.cleanup = "zap";
           brews = [
             #"azure-functions-core-tools@4" # disabled because not used currently
+            "graphite"
           ];
           casks = [
             "raycast"
             "alacritty"
             "vlc"
+            "codexbar"
           ];
         };
 
@@ -54,7 +66,7 @@
               ../../../home/lisa/mac-private.nix
             ];
           };
-          extraSpecialArgs = {inherit inputs;};
+          extraSpecialArgs = {inherit inputs pkgs;};
         };
 
         nix-homebrew = {
@@ -66,6 +78,8 @@
             "azure/homebrew-functions" = inputs.azure-functions;
             "messense/homebrew-macos-cross-toolchains" = inputs.macos-cross-toolchains;
             "surrealdb/homebrew-tap" = inputs.surrealdb-tap;
+            "withgraphite/homebrew-tap" = inputs.withgraphite-tap;
+            "steipete/homebrew-tap" = inputs.steipete-tap;
           };
           mutableTaps = false;
           enableRosetta = true;
@@ -79,8 +93,8 @@
         # Necessary for using flakes on this system.
         nix.settings.experimental-features = "nix-command flakes";
         nix.settings.trusted-users = ["lisa"];
+
         # Enable alternative shell support in nix-darwin.
-        # programs.fish.enable = true;
 
         # Set Git commit hash for darwin-version.
         system.configurationRevision = lib.mkIf (builtins.pathExists /private/etc/nix-darwin/.git) (lib.mkDefault null);
