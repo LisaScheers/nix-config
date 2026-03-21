@@ -94,6 +94,24 @@
         nix.settings.experimental-features = "nix-command flakes";
         nix.settings.trusted-users = ["lisa"];
 
+        # Apply updates from the latest flake revision every day.
+        launchd.daemons.nix-darwin-auto-upgrade = {
+          serviceConfig = {
+            Label = "org.nix-darwin.auto-upgrade";
+            ProgramArguments = [
+              "/bin/sh"
+              "-lc"
+              "/run/current-system/sw/bin/darwin-rebuild switch --flake /private/etc/nix-darwin#Lisas-private-MacBook-Pro"
+            ];
+            StartCalendarInterval = [{
+              Hour = 4;
+              Minute = 0;
+            }];
+            StandardOutPath = "/var/log/nix-darwin-auto-upgrade.log";
+            StandardErrorPath = "/var/log/nix-darwin-auto-upgrade.log";
+          };
+        };
+
         # Enable alternative shell support in nix-darwin.
 
         # Set Git commit hash for darwin-version.
