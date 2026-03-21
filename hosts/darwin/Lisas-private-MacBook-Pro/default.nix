@@ -93,6 +93,23 @@
         # Necessary for using flakes on this system.
         nix.settings.experimental-features = "nix-command flakes";
         nix.settings.trusted-users = ["lisa"];
+        launchd.daemons.nix-store-gc = {
+          serviceConfig = {
+            Label = "org.nix-darwin.nix-store-gc";
+            ProgramArguments = [
+              "/bin/sh"
+              "-lc"
+              "/run/current-system/sw/bin/nix-collect-garbage --delete-older-than 14d"
+            ];
+            StartCalendarInterval = [{
+              Hour = 5;
+              Minute = 0;
+              Weekday = 0;
+            }];
+            StandardOutPath = "/var/log/nix-store-gc.log";
+            StandardErrorPath = "/var/log/nix-store-gc.log";
+          };
+        };
 
         # Apply updates from the latest flake revision every day.
         launchd.daemons.nix-darwin-auto-upgrade = {
