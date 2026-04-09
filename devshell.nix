@@ -1,18 +1,18 @@
 {inputs, ...}: {
   perSystem = {
     pkgs,
-    system,
+    inputs',
     ...
   }: {
     devShells.default = pkgs.mkShell {
-      buildInputs = [
+      packages = [
         pkgs.just
         pkgs.sops
         pkgs.age
         pkgs.ssh-to-age
-        inputs.nil.packages."${system}".nil
-        inputs.nix-darwin.packages."${system}".darwin-rebuild
-        inputs.home-manager.packages."${system}".home-manager
+        inputs'.nil.packages.nil
+        inputs'.nix-darwin.packages.darwin-rebuild
+        inputs'.home-manager.packages.home-manager
       ];
 
       shellHook = ''

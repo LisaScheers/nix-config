@@ -13,7 +13,7 @@ darwin host="Lisas-private-MacBook-Pro":
     sudo darwin-rebuild switch --flake .#"{{host}}"
 
 # Rebuild NixOS configuration
-nixos host="nixos-host":
+nixos host="home-server":
     nixos-rebuild switch --flake .#"{{host}}"
 
 # Initialize secrets file with sops (run once before first use)
@@ -67,7 +67,7 @@ darwin-build host="Lisas-private-MacBook-Pro":
     darwin-rebuild build --flake .#"{{host}}"
 
 # Build NixOS configuration (dry-run)
-nixos-build host="nixos-host":
+nixos-build host="home-server":
     nixos-rebuild build --flake .#"{{host}}"
 
 # Generate age key for sops (if needed)
@@ -77,4 +77,3 @@ age-keygen:
     @age-keygen -o ~/.config/sops/age/keys.txt
     @echo "Age key generated at ~/.config/sops/age/keys.txt"
     @echo "Add the public key to .sops.yaml"
-

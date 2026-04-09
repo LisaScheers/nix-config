@@ -5,7 +5,7 @@
 }: {
   # home server nixos configuration
   imports = [
-    ./modules/home-assistent.nix
+    ./modules/home-assistant.nix
   ];
   environment.systemPackages = with pkgs;
     map lib.lowPrio [
@@ -42,9 +42,7 @@
     extraGroups = ["wheel"];
     #ssh public key
 
-    sshKeys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiE8HwWZDx2pK1p69w7rWQ2Y1RcmNj0/kF1yU1y9a3L"
-    ];
+    openssh.authorizedKeys.keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiE8HwWZDx2pK1p69w7rWQ2Y1RcmNj0/kF1yU1y9a3L"];
   };
 
   #sudo

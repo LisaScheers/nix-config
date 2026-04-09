@@ -6,9 +6,10 @@ This repository contains declarative system configurations for macOS (via `nix-d
 
 - **`flake.nix`**: Entry point for the configuration. Defines inputs (dependencies) and outputs (system configurations).
 - **`hosts/`**: Host-specific configurations.
-  - `darwin/`: macOS configurations (e.g., `Lisas-private-MacBook-Pro-3`).
+  - `darwin/`: macOS configurations (e.g., `Lisas-private-MacBook-Pro`, `work`).
+  - `linux/`: NixOS configurations (e.g., `home-server`).
 - **`home/`**: Home Manager configurations for users (e.g., `lisa`).
-- **`modules/`**: Custom Nix modules (shared configuration blocks).
+- **`hosts/*/modules/`**: Host-local Nix modules (e.g., the Home Assistant module for `home-server`).
 - **`secrets/`**: Encrypted secrets managed by `sops-nix`.
 - **`Justfile`**: Command runner for common tasks.
 
@@ -106,7 +107,7 @@ just flakehub-login
 
 ## ➕ Adding a New Host
 
-1.  Create a new directory in `hosts/darwin/` or `hosts/nixos/` with your hostname.
+1.  Create a new directory in `hosts/darwin/` or `hosts/linux/` with your hostname.
 2.  Create a `default.nix` in that directory (copy an existing one as a template).
 3.  Add the host to `darwinConfigurations` or `nixosConfigurations` in `flake.nix`.
 4.  Run `just darwin host="NewHostName"` to build.

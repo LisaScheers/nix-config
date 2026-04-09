@@ -7,7 +7,7 @@
     _module.args.pkgs = import inputs.nixpkgs {
       inherit system;
       overlays = [
-        (final: prev: {
+        (_: _: {
           codex = inputs'.codex-cli-nix.packages.default;
         })
       ];

@@ -5,7 +5,7 @@
 }: {
   flake.darwinConfigurations."Lisas-private-MacBook-Pro" = inputs.nix-darwin.lib.darwinSystem {
     system = "aarch64-darwin";
-    specialArgs = {inherit inputs;};
+    specialArgs = {inputs = builtins.removeAttrs inputs ["self"];};
     modules = [
       inputs.sops-nix.darwinModules.sops
       inputs.home-manager.darwinModules.home-manager
@@ -15,7 +15,17 @@
         lib,
         config,
         ...
-      }: {
+      }: let
+        homebrewTaps = {
+          "homebrew/homebrew-core" = inputs.homebrew-core;
+          "homebrew/homebrew-cask" = inputs.homebrew-cask;
+          "azure/functions" = inputs.azure-functions;
+          "messense/macos-cross-toolchains" = inputs.macos-cross-toolchains;
+          "surrealdb/tap" = inputs.surrealdb-tap;
+          "withgraphite/tap" = inputs.withgraphite-tap;
+          "steipete/tap" = inputs.steipete-tap;
+        };
+      in {
         nixpkgs = {
           pkgs = withSystem config.nixpkgs.hostPlatform.system (
             {pkgs, ...}:
@@ -74,15 +84,7 @@
         nix-homebrew = {
           enable = true;
           user = "lisa";
-          taps = {
-            "homebrew/homebrew-core" = inputs.homebrew-core;
-            "homebrew/homebrew-cask" = inputs.homebrew-cask;
-            "azure/functions" = inputs.azure-functions;
-            "messense/macos-cross-toolchains" = inputs.macos-cross-toolchains;
-            "surrealdb/tap" = inputs.surrealdb-tap;
-            "withgraphite/tap" = inputs.withgraphite-tap;
-            "steipete/tap" = inputs.steipete-tap;
-          };
+          taps = homebrewTaps;
           mutableTaps = false;
           enableRosetta = true;
         };

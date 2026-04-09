@@ -88,27 +88,34 @@
   };
 
   outputs = inputs @ {flake-parts, ...}:
-    flake-parts.lib.mkFlake {inherit inputs;} (top @ {
-      config,
-      withSystem,
-      moduleWithSystem,
-      ...
-    }: {
+    flake-parts.lib.mkFlake {inherit inputs;} ({withSystem, ...}: let
+      privateDarwinModule = import ./hosts/darwin/Lisas-private-MacBook-Pro/default.nix;
+      workDarwinModule = import ./hosts/darwin/work/default.nix;
+    in {
       imports = [
         inputs.devenv.flakeModule
-        ./hosts/darwin/Lisas-private-MacBook-Pro/default.nix
         ./devshell.nix
         ./overlays.nix
       ];
       systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin"];
-      perSystem = {
-        pkgs,
-        inputs',
-        ...
-      }: {
-        formatter = pkgs.alejandra;
-      };
       flake = {
+        darwinConfigurations = {
+          "Lisas-private-MacBook-Pro" =
+            (privateDarwinModule {
+              inherit inputs withSystem;
+            }).flake.darwinConfigurations."Lisas-private-MacBook-Pro";
+          work = (workDarwinModule {inherit inputs;}).flake.darwinConfigurations.work;
+        };
+        nixosConfigurations.home-server = inputs.nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {inputs = builtins.removeAttrs inputs ["self"];};
+          modules = [
+            ./hosts/linux/home-server/default.nix
+          ];
+        };
+      };
+      perSystem = {pkgs, ...}: {
+        formatter = pkgs.alejandra;
       };
     });
 }

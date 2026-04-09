@@ -79,7 +79,7 @@
 
   # env variables
   home.sessionVariables = {
-    NIXPKGS_ALLOW_UNFREE = 1;
+    NIXPKGS_ALLOW_UNFREE = "1";
     EDITOR = "code --wait";
     VISUAL = "code --wait";
     SOPS_AGE_KEY_CMD = "op item get ympq3ilboihqml7agfdb5ejxay --fields notesPlain --format=json | jq .value -r";

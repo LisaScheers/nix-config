@@ -1,22 +1,14 @@
-{
-  inputs,
-  lib,
-}: {
+{inputs, ...}: {
   flake.darwinConfigurations."work" = inputs.nix-darwin.lib.darwinSystem {
     system = "aarch64-darwin";
-    specialArgs = {inherit inputs;};
+    specialArgs = {inputs = builtins.removeAttrs inputs ["self"];};
     modules = [
       inputs.sops-nix.darwinModules.sops
       inputs.home-manager.darwinModules.home-manager
       inputs.nix-homebrew.darwinModules.nix-homebrew
-      ({
-        pkgs,
-        lib,
-        ...
-      }: {
+      (_: {
         nix.enable = false;
-        environment.systemPackages = [
-        ];
+        system.stateVersion = 6;
       })
     ];
   };
