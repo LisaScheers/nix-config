@@ -33,10 +33,12 @@
           pkgs.age
           pkgs.ssh-to-age
           inputs.alejandra.packages."aarch64-darwin".default
+          inputs.fh.packages."aarch64-darwin".default
           inputs.nil.packages."aarch64-darwin".nil
           pkgs.jdk21_headless
           pkgs.codex
           pkgs.ripgrep
+          pkgs.gemini-cli
         ];
 
         # homebrew packages
@@ -75,11 +77,11 @@
           taps = {
             "homebrew/homebrew-core" = inputs.homebrew-core;
             "homebrew/homebrew-cask" = inputs.homebrew-cask;
-            "azure/homebrew-functions" = inputs.azure-functions;
-            "messense/homebrew-macos-cross-toolchains" = inputs.macos-cross-toolchains;
-            "surrealdb/homebrew-tap" = inputs.surrealdb-tap;
-            "withgraphite/homebrew-tap" = inputs.withgraphite-tap;
-            "steipete/homebrew-tap" = inputs.steipete-tap;
+            "azure/functions" = inputs.azure-functions;
+            "messense/macos-cross-toolchains" = inputs.macos-cross-toolchains;
+            "surrealdb/tap" = inputs.surrealdb-tap;
+            "withgraphite/tap" = inputs.withgraphite-tap;
+            "steipete/tap" = inputs.steipete-tap;
           };
           mutableTaps = false;
           enableRosetta = true;
@@ -101,11 +103,13 @@
               "-lc"
               "/run/current-system/sw/bin/nix-collect-garbage --delete-older-than 14d"
             ];
-            StartCalendarInterval = [{
-              Hour = 5;
-              Minute = 0;
-              Weekday = 0;
-            }];
+            StartCalendarInterval = [
+              {
+                Hour = 5;
+                Minute = 0;
+                Weekday = 0;
+              }
+            ];
             StandardOutPath = "/var/log/nix-store-gc.log";
             StandardErrorPath = "/var/log/nix-store-gc.log";
           };
@@ -120,10 +124,12 @@
               "-lc"
               "/run/current-system/sw/bin/darwin-rebuild switch --flake /private/etc/nix-darwin#Lisas-private-MacBook-Pro"
             ];
-            StartCalendarInterval = [{
-              Hour = 4;
-              Minute = 0;
-            }];
+            StartCalendarInterval = [
+              {
+                Hour = 4;
+                Minute = 0;
+              }
+            ];
             StandardOutPath = "/var/log/nix-darwin-auto-upgrade.log";
             StandardErrorPath = "/var/log/nix-darwin-auto-upgrade.log";
           };

@@ -54,6 +54,14 @@ tree:
 dev:
     nix develop
 
+# Check whether the current machine is authenticated to FlakeHub Cache
+flakehub-status:
+    determinate-nixd status
+
+# Refresh machine-local FlakeHub authentication
+flakehub-login:
+    sudo determinate-nixd login
+
 # Build Darwin configuration (dry-run)
 darwin-build host="Lisas-private-MacBook-Pro":
     darwin-rebuild build --flake .#"{{host}}"
@@ -69,5 +77,4 @@ age-keygen:
     @age-keygen -o ~/.config/sops/age/keys.txt
     @echo "Age key generated at ~/.config/sops/age/keys.txt"
     @echo "Add the public key to .sops.yaml"
-
 

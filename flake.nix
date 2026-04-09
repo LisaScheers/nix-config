@@ -17,7 +17,6 @@
     };
     nix-homebrew = {
       url = "github:zhaofengli/nix-homebrew";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     nil = {
       url = "github:oxalica/nil";
@@ -40,7 +39,9 @@
     # };
     flake-parts = {
       url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*";
-      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    fh = {
+      url = "https://flakehub.com/f/DeterminateSystems/fh/*";
     };
     devenv = {
       url = "github:cachix/devenv";
@@ -105,7 +106,7 @@
         inputs',
         ...
       }: {
-        formatter = inputs.alejandra.packages.alejandra;
+        formatter = pkgs.alejandra;
       };
       flake = {
       };

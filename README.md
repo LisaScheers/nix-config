@@ -67,6 +67,8 @@ The project uses a `Justfile` to simplify common commands. Run `just` to see the
 | `just fmt`        | Format all Nix files using `alejandra`  |
 | `just check`      | Check flake for errors                  |
 | `just update`     | Update flake inputs (dependencies)      |
+| `just flakehub-status` | Show FlakeHub auth status          |
+| `just flakehub-login` | Refresh machine-local FlakeHub auth |
 | `just age-keygen` | Generate a new age key for sops         |
 
 ## 🔐 Secrets Management
@@ -88,6 +90,19 @@ Secrets are managed using [sops-nix](https://github.com/Mic92/sops-nix) with `ag
     just sops
     ```
     This decrypts `secrets/secrets.yaml`, opens it in your editor, and re-encrypts it on save.
+
+## FlakeHub Authentication
+
+This repository already uses FlakeHub-backed inputs, but authentication should stay machine-local and should not be committed into the repo.
+
+On this Mac, Determinate Nix manages FlakeHub authentication through `determinate-nixd`. To inspect or refresh the current login:
+
+```bash
+just flakehub-status
+just flakehub-login
+```
+
+`just flakehub-login` runs `sudo determinate-nixd login`, which refreshes the workstation token used for private flakes and FlakeHub Cache. The `fh` CLI is also installed through the darwin configuration so it is available system-wide after the next rebuild.
 
 ## ➕ Adding a New Host
 
