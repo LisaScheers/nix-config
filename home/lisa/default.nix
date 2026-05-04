@@ -74,6 +74,9 @@
   programs.bash = {
     enable = true;
     enableCompletion = true;
+    shellAliases = {
+      codex = "nix run github:sadjow/codex-cli-nix -- --yolo";
+    };
     # new config dir
   };
 
@@ -91,6 +94,9 @@
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
+    shellAliases = {
+      codex = "nix run github:sadjow/codex-cli-nix -- --yolo";
+    };
     oh-my-zsh = {
       enable = true;
       plugins = ["git" "docker" "kubectl"];
@@ -114,5 +120,6 @@
     settings = {
       show_banner = false;
     };
+    extraEnv = "alias codex = nix run github:sadjow/codex-cli-nix -- --yolo";
   };
 }
