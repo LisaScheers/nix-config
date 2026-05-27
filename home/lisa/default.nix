@@ -28,6 +28,7 @@
   };
 
   home.file = {
+    ".config/git/allowed_signers".source = ./ssh/allowed-signers;
     ".ssh/SSH Key DevOps.pub".source = ./ssh/public-keys/ssh-key-devops.pub;
     ".ssh/dev.pub".source = ./ssh/public-keys/dev.pub;
     ".ssh/devops-odisee.pub".source = ./ssh/public-keys/devops-odisee.pub;
@@ -151,7 +152,10 @@
       };
       gpg = {
         format = "ssh";
-        ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+        ssh = {
+          allowedSignersFile = "${config.xdg.configHome}/git/allowed_signers";
+          program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+        };
       };
       commit = {
         gpgsign = true;
