@@ -68,6 +68,13 @@
           ];
         };
 
+        services.tailscale = {
+          enable = true;
+          overrideLocalDns = false;
+        };
+
+        programs.ssh.knownHosts = import ../../../home/lisa/ssh/known-hosts.nix {inherit lib;};
+
         home-manager = {
           backupFileExtension = ".before-nix-home-manager";
           useGlobalPkgs = true;
