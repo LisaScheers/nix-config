@@ -1,8 +1,11 @@
 {
   withSystem,
   inputs,
+  config,
   ...
-}: {
+}: let
+  lisaMacosHomeModule = config.flake.homeModules.lisa-macos;
+in {
   flake.darwinConfigurations."Lisas-private-MacBook-Pro" = inputs.nix-darwin.lib.darwinSystem {
     system = "aarch64-darwin";
     specialArgs = {inputs = builtins.removeAttrs inputs ["self"];};
@@ -17,8 +20,8 @@
         ...
       }: let
         homebrewTaps = {
-          "homebrew/homebrew-core" = inputs.homebrew-core;
-          "homebrew/homebrew-cask" = inputs.homebrew-cask;
+          "homebrew/core" = inputs.homebrew-core;
+          "homebrew/cask" = inputs.homebrew-cask;
           "azure/functions" = inputs.azure-functions;
           "messense/macos-cross-toolchains" = inputs.macos-cross-toolchains;
           "surrealdb/tap" = inputs.surrealdb-tap;
@@ -49,22 +52,33 @@
           pkgs.codex
           pkgs.ripgrep
           pkgs.gemini-cli
+          pkgs.raycast
+          pkgs.alacritty
         ];
+
+        environment.etc."hosts".text = ''
+          ##
+          # Host Database
+          #
+          # localhost is used to configure the loopback interface
+          # when the system is booting.  Do not change this entry.
+          ##
+          127.0.0.1       localhost
+          #127.0.0.1      db.slocaltest.me
+          255.255.255.255 broadcasthost
+          ::1             localhost
+
+          2a02:1810:515:c682::1 internal.bylisa.dev
+          192.168.50.1          internal.bylisa.dev
+        '';
 
         # homebrew packages
         homebrew = {
           enable = true;
           onActivation.autoUpdate = true;
           onActivation.cleanup = "zap";
-          brews = [
-            #"azure-functions-core-tools@4" # disabled because not used currently
-            "graphite"
-          ];
+          brews = [];
           casks = [
-            "raycast"
-            "alacritty"
-            "vlc"
-            "codexbar"
           ];
         };
 
@@ -79,12 +93,7 @@
           backupFileExtension = ".before-nix-home-manager";
           useGlobalPkgs = true;
           useUserPackages = true;
-          users.lisa = {
-            imports = [
-              inputs.onepassword-shell-plugins.hmModules.default
-              ../../../home/lisa/mac-private.nix
-            ];
-          };
+          users.lisa = lisaMacosHomeModule;
           extraSpecialArgs = {inherit inputs pkgs;};
         };
 

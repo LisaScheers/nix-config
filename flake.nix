@@ -88,24 +88,27 @@
   };
 
   outputs = inputs @ {flake-parts, ...}:
-    flake-parts.lib.mkFlake {inherit inputs;} ({withSystem, ...}: let
-      privateDarwinModule = import ./hosts/darwin/Lisas-private-MacBook-Pro/default.nix;
-      workDarwinModule = import ./hosts/darwin/work/default.nix;
-    in {
+    flake-parts.lib.mkFlake {inherit inputs;} ({
+      config,
+      withSystem,
+      ...
+    }: {
       imports = [
         inputs.devenv.flakeModule
+        inputs.home-manager.flakeModules.home-manager
         ./devshell.nix
         ./overlays.nix
+        ./hosts/darwin/Lisas-private-MacBook-Pro/default.nix
       ];
       systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin"];
       flake = {
-        darwinConfigurations = {
-          "Lisas-private-MacBook-Pro" =
-            (privateDarwinModule {
-              inherit inputs withSystem;
-            }).flake.darwinConfigurations."Lisas-private-MacBook-Pro";
-          work = (workDarwinModule {inherit inputs;}).flake.darwinConfigurations.work;
+        homeModules.lisa-macos = {
+          imports = [
+            inputs.onepassword-shell-plugins.hmModules.default
+            ./home/lisa/mac-private.nix
+          ];
         };
+
         nixosConfigurations.home-server = inputs.nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {inputs = builtins.removeAttrs inputs ["self"];};
