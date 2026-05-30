@@ -1,0 +1,31 @@
+{pkgs, ...}: {
+  environment.systemPackages = with pkgs; [
+    vim
+    just
+    sops
+    age
+    ssh-to-age
+    alejandra
+    fh
+    nil
+    jdk21_headless
+    codex
+    ripgrep
+    gemini-cli
+    raycast
+    alacritty
+    audacity
+    blender
+    discord-canary
+    discord-ptb
+    element-desktop
+    linear
+    mpv
+    obsidian
+    orbstack
+    qbittorrent
+    slack
+    t3code
+    the-unarchiver
+  ];
+}

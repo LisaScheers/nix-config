@@ -15,7 +15,5 @@ result-*
 *~
 
 
-# Flake lock (optional - some prefer to commit it)
-# flake.lock
+# flake.lock is intentionally tracked for reproducible input pins.
 .decrypted*
-

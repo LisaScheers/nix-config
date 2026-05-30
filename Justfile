@@ -42,6 +42,14 @@ sops file="secrets/secrets.yaml":
 check:
     nix flake check
 
+# Check flake on every declared supported system when matching builders are available
+check-all:
+    nix flake check --all-systems
+
+# Check formatting without modifying files
+fmt-check:
+    nix fmt -- --check
+
 # Update flake inputs
 update:
     nix flake update
@@ -53,6 +61,14 @@ tree:
 # Enter development shell
 dev:
     nix develop
+
+# Build the host configuration for the current supported system
+build:
+    nix run .#build
+
+# Build and switch the host configuration for the current supported system
+apply:
+    nix run .#build-switch
 
 # Check whether the current machine is authenticated to FlakeHub Cache
 flakehub-status:

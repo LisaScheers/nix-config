@@ -18,30 +18,13 @@
     nix-homebrew = {
       url = "github:zhaofengli/nix-homebrew";
     };
-    nil = {
-      url = "github:oxalica/nil";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     onepassword-shell-plugins = {
       url = "github:1Password/shell-plugins";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    alejandra = {
-      url = "https://flakehub.com/f/kamadorueda/alejandra/4.0.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     flake-parts = {
       url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*";
-    };
-    fh = {
-      url = "https://flakehub.com/f/DeterminateSystems/fh/*";
-    };
-    devenv = {
-      url = "github:cachix/devenv";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     codex-cli-nix = {
       url = "github:sadjow/codex-cli-nix";
@@ -59,20 +42,28 @@
     };
   };
 
-  outputs = inputs @ {flake-parts, ...}:
+  outputs = inputs @ {flake-parts, ...}: let
+    localConfig = import ./config.nix;
+    localLib = import ./lib {
+      inherit localConfig;
+      appsDir = ./apps;
+      root = ./.;
+    };
+  in
     flake-parts.lib.mkFlake {inherit inputs;} ({
       config,
       withSystem,
       ...
     }: {
+      _module.args.localConfig = localConfig;
+
       imports = [
-        inputs.devenv.flakeModule
         inputs.home-manager.flakeModules.home-manager
         ./devshell.nix
         ./overlays.nix
         ./hosts/darwin/Lisas-private-MacBook-Pro/default.nix
       ];
-      systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin"];
+      systems = localConfig.supportedSystems;
       flake = {
         homeModules.lisa-macos = {
           imports = [
@@ -81,16 +72,68 @@
           ];
         };
 
-        nixosConfigurations.home-server = inputs.nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = {inputs = builtins.removeAttrs inputs ["self"];};
+        nixosConfigurations.${localConfig.nixosHost} = inputs.nixpkgs.lib.nixosSystem {
+          system = localConfig.nixosSystem;
+          specialArgs = {
+            inputs = builtins.removeAttrs inputs ["self"];
+            flakeRevision = inputs.self.rev or inputs.self.dirtyRev or null;
+            inherit localConfig;
+          };
           modules = [
             ./hosts/linux/home-server/default.nix
           ];
         };
       };
-      perSystem = {pkgs, ...}: {
-        formatter = pkgs.alejandra;
+      perSystem = {
+        inputs',
+        lib,
+        pkgs,
+        system,
+        ...
+      }: let
+        hostKind = localLib.hostKindForSystem system;
+        rebuildRuntimeInputs =
+          [pkgs.nix]
+          ++ lib.optionals (hostKind == "darwin") [
+            inputs'.nix-darwin.packages.darwin-rebuild
+          ];
+        mkWorkflowApp = name: runtimeInputs:
+          localLib.mkWorkflowApp {
+            inherit
+              hostKind
+              lib
+              name
+              pkgs
+              runtimeInputs
+              system
+              ;
+          };
+        buildApp = mkWorkflowApp "build" rebuildRuntimeInputs;
+        buildSwitchApp = mkWorkflowApp "build-switch" rebuildRuntimeInputs;
+        nixSource = localLib.mkNixSource lib;
+        formattingCheck = localLib.mkFormattingCheck {
+          inherit pkgs;
+          src = nixSource;
+        };
+      in {
+        apps = {
+          default = buildApp;
+          build = buildApp;
+          "build-switch" = buildSwitchApp;
+          apply = buildSwitchApp;
+          clean = mkWorkflowApp "clean" [pkgs.nix];
+          update = mkWorkflowApp "update" [
+            pkgs.git
+            pkgs.nix
+          ];
+        };
+
+        checks = {
+          default = formattingCheck;
+          formatting = formattingCheck;
+        };
+
+        formatter = localLib.mkFormatter pkgs;
       };
     });
 }

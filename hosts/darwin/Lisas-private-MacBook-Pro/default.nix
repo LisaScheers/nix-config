@@ -2,199 +2,28 @@
   withSystem,
   inputs,
   config,
+  localConfig,
   ...
 }: let
   lisaMacosHomeModule = config.flake.homeModules.lisa-macos;
 in {
-  flake.darwinConfigurations."Lisas-private-MacBook-Pro" = inputs.nix-darwin.lib.darwinSystem {
-    system = "aarch64-darwin";
-    specialArgs = {inputs = builtins.removeAttrs inputs ["self"];};
+  flake.darwinConfigurations.${localConfig.darwinHost} = inputs.nix-darwin.lib.darwinSystem {
+    system = localConfig.darwinSystem;
+    specialArgs = {
+      inputs = builtins.removeAttrs inputs ["self"];
+      flakeRevision = inputs.self.rev or inputs.self.dirtyRev or null;
+      inherit
+        lisaMacosHomeModule
+        localConfig
+        withSystem
+        ;
+    };
     modules = [
       inputs.sops-nix.darwinModules.sops
       inputs.home-manager.darwinModules.home-manager
       inputs.nix-homebrew.darwinModules.nix-homebrew
-      ({
-        pkgs,
-        lib,
-        config,
-        ...
-      }: let
-        homebrewTaps = {
-          "homebrew/core" = inputs.homebrew-core;
-          "homebrew/cask" = inputs.homebrew-cask;
-        };
-      in {
-        nixpkgs = {
-          pkgs = withSystem config.nixpkgs.hostPlatform.system (
-            {pkgs, ...}:
-            # perSystem module arguments
-              pkgs
-          );
-        };
-        nix.enable = false; # managed by determinate nix installer
-        # List packages installed in system profile. To search by name, run:
-        # $ nix-env -qaP | grep wget
-        environment.systemPackages = [
-          pkgs.vim
-          pkgs.just
-          pkgs.sops
-          pkgs.age
-          pkgs.ssh-to-age
-          inputs.alejandra.packages."aarch64-darwin".default
-          inputs.fh.packages."aarch64-darwin".default
-          pkgs.nil
-          pkgs.jdk21_headless
-          pkgs.codex
-          pkgs.ripgrep
-          pkgs.gemini-cli
-          pkgs.raycast
-          pkgs.alacritty
-          pkgs.audacity
-          pkgs.blender
-          pkgs.discord-canary
-          pkgs.discord-ptb
-          pkgs.element-desktop
-          pkgs.linear
-          pkgs.mpv
-          pkgs.obsidian
-          pkgs.orbstack
-          pkgs.qbittorrent
-          pkgs.slack
-          pkgs.t3code
-          pkgs.the-unarchiver
-        ];
-
-        system.activationScripts.postActivation.text = ''
-          echo "configuring internal.bylisa.dev host records..." >&2
-
-          hosts_file=/etc/hosts
-          begin_marker="# nix-darwin: internal.bylisa.dev begin"
-          end_marker="# nix-darwin: internal.bylisa.dev end"
-          tmp_file=$(mktemp /tmp/nix-darwin-hosts.XXXXXX)
-          trap 'rm -f "$tmp_file"' EXIT
-
-          if [ -f "$hosts_file" ]; then
-            awk -v begin="$begin_marker" -v end="$end_marker" '
-              $0 == begin { skip = 1; next }
-              $0 == end { skip = 0; next }
-              skip != 1 { print }
-            ' "$hosts_file" > "$tmp_file"
-          else
-            : > "$tmp_file"
-          fi
-
-          cat >> "$tmp_file" <<'EOF'
-
-          # nix-darwin: internal.bylisa.dev begin
-          2a02:1810:515:c682::1 internal.bylisa.dev
-          192.168.50.1 internal.bylisa.dev
-          # nix-darwin: internal.bylisa.dev end
-          EOF
-
-          install -m 0644 "$tmp_file" "$hosts_file"
-          rm -f "$tmp_file"
-          trap - EXIT
-        '';
-
-        # homebrew packages
-        homebrew = {
-          enable = true;
-          onActivation.autoUpdate = true;
-          onActivation.cleanup = "zap";
-          brews = [];
-          casks = [];
-        };
-
-        services.tailscale = {
-          enable = true;
-          overrideLocalDns = false;
-        };
-
-        programs.ssh.knownHosts = import ../../../home/lisa/ssh/known-hosts.nix {inherit lib;};
-
-        home-manager = {
-          backupFileExtension = ".before-nix-home-manager";
-          useGlobalPkgs = true;
-          useUserPackages = true;
-          users.lisa = lisaMacosHomeModule;
-          extraSpecialArgs = {inherit inputs pkgs;};
-        };
-
-        nix-homebrew = {
-          enable = true;
-          user = "lisa";
-          taps = homebrewTaps;
-          mutableTaps = false;
-          enableRosetta = true;
-        };
-
-        system.primaryUser = "lisa";
-        users.users.lisa.uid = 501;
-        # pam touch id
-        security.pam.services.sudo_local.touchIdAuth = true;
-
-        # Necessary for using flakes on this system.
-        nix.settings.experimental-features = "nix-command flakes";
-        nix.settings.trusted-users = ["lisa"];
-        launchd.daemons.nix-store-gc = {
-          serviceConfig = {
-            Label = "org.nix-darwin.nix-store-gc";
-            ProgramArguments = [
-              "/bin/sh"
-              "-lc"
-              "/run/current-system/sw/bin/nix-collect-garbage --delete-older-than 14d"
-            ];
-            StartCalendarInterval = [
-              {
-                Hour = 5;
-                Minute = 0;
-                Weekday = 0;
-              }
-            ];
-            StandardOutPath = "/var/log/nix-store-gc.log";
-            StandardErrorPath = "/var/log/nix-store-gc.log";
-          };
-        };
-
-        # Apply updates from the latest flake revision every day.
-        launchd.daemons.nix-darwin-auto-upgrade = {
-          serviceConfig = {
-            Label = "org.nix-darwin.auto-upgrade";
-            ProgramArguments = [
-              "/bin/sh"
-              "-lc"
-              "/run/current-system/sw/bin/darwin-rebuild switch --flake /private/etc/nix-darwin#Lisas-private-MacBook-Pro"
-            ];
-            StartCalendarInterval = [
-              {
-                Hour = 4;
-                Minute = 0;
-              }
-            ];
-            StandardOutPath = "/var/log/nix-darwin-auto-upgrade.log";
-            StandardErrorPath = "/var/log/nix-darwin-auto-upgrade.log";
-          };
-        };
-
-        # Enable alternative shell support in nix-darwin.
-
-        # Set Git commit hash for darwin-version.
-        system.configurationRevision = lib.mkIf (builtins.pathExists /private/etc/nix-darwin/.git) (lib.mkDefault null);
-
-        # Used for backwards compatibility, please read the changelog before changing.
-        # $ darwin-rebuild changelog
-        system.stateVersion = 6;
-
-        # The platform the configuration will be used on.
-        nixpkgs.hostPlatform = "aarch64-darwin";
-
-        # Sops-nix configuration
-        sops = {
-          defaultSopsFile = ../../../../secrets/secrets.yaml;
-          age.keyFile = "/Users/lisa/.config/sops/age/keys.txt";
-          secrets = {};
-        };
-      })
+      ../../../modules/darwin
+      ./configuration.nix
     ];
   };
 }

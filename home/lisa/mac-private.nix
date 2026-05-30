@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  localConfig,
   ...
 }: let
   appTile = path: {
@@ -16,7 +17,7 @@ in {
     ./default.nix
   ];
 
-  home.homeDirectory = lib.mkForce "/Users/lisa"; # Darwin: /Users/lisa
+  home.homeDirectory = lib.mkForce localConfig.darwinHomeDirectory;
 
   targets.darwin.defaults."com.apple.dock" = {
     autohide = true;

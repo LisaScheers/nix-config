@@ -23,6 +23,9 @@ jobs:
       - name: Update flake.lock
         run: nix flake update
 
+      - name: Validate updated flake
+        run: nix flake check
+
       - name: Check for lock file changes
         id: lock_changes
         run: |
