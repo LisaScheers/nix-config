@@ -22,11 +22,6 @@ in {
         homebrewTaps = {
           "homebrew/core" = inputs.homebrew-core;
           "homebrew/cask" = inputs.homebrew-cask;
-          "azure/functions" = inputs.azure-functions;
-          "messense/macos-cross-toolchains" = inputs.macos-cross-toolchains;
-          "surrealdb/tap" = inputs.surrealdb-tap;
-          "withgraphite/tap" = inputs.withgraphite-tap;
-          "steipete/tap" = inputs.steipete-tap;
         };
       in {
         nixpkgs = {
@@ -94,8 +89,7 @@ in {
           onActivation.autoUpdate = true;
           onActivation.cleanup = "zap";
           brews = [];
-          casks = [
-          ];
+          casks = [];
         };
 
         services.tailscale = {

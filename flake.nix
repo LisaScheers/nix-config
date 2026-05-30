@@ -33,10 +33,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # disko = {
-    #   url = "https://flakehub.com/f/nix-community/disko/1.*";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
     flake-parts = {
       url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*";
     };
@@ -47,7 +43,6 @@
       url = "github:cachix/devenv";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     codex-cli-nix = {
       url = "github:sadjow/codex-cli-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -60,29 +55,6 @@
     };
     homebrew-cask = {
       url = "github:homebrew/homebrew-cask";
-      flake = false;
-    };
-
-    azure-functions = {
-      url = "github:Azure/homebrew-functions";
-      flake = false;
-    };
-    macos-cross-toolchains = {
-      url = "github:messense/homebrew-macos-cross-toolchains";
-      flake = false;
-    };
-    surrealdb-tap = {
-      url = "github:surrealdb/homebrew-tap";
-      flake = false;
-    };
-
-    withgraphite-tap = {
-      url = "github:withgraphite/homebrew-tap";
-      flake = false;
-    };
-
-    steipete-tap = {
-      url = "github:steipete/homebrew-tap";
       flake = false;
     };
   };
