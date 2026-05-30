@@ -49,6 +49,19 @@ in {
           pkgs.gemini-cli
           pkgs.raycast
           pkgs.alacritty
+          pkgs.audacity
+          pkgs.blender
+          pkgs.discord-canary
+          pkgs.discord-ptb
+          pkgs.element-desktop
+          pkgs.linear
+          pkgs.mpv
+          pkgs.obsidian
+          pkgs.orbstack
+          pkgs.qbittorrent
+          pkgs.slack
+          pkgs.t3code
+          pkgs.the-unarchiver
         ];
 
         system.activationScripts.postActivation.text = ''
