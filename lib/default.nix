@@ -2,13 +2,15 @@
   appsDir,
   localConfig,
   root,
-}: {
+}: rec {
   hostKindForSystem = system:
     if system == localConfig.darwinSystem
     then "darwin"
     else if system == localConfig.nixosSystem
     then "nixos"
     else "none";
+
+  hasHostForSystem = system: (hostKindForSystem system) != "none";
 
   mkWorkflowApp = {
     hostKind,

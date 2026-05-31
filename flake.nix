@@ -115,18 +115,22 @@
           inherit pkgs;
           src = nixSource;
         };
-      in {
-        apps = {
+        hostApps = lib.optionalAttrs (localLib.hasHostForSystem system) {
           default = buildApp;
           build = buildApp;
           "build-switch" = buildSwitchApp;
           apply = buildSwitchApp;
-          clean = mkWorkflowApp "clean" [pkgs.nix];
-          update = mkWorkflowApp "update" [
-            pkgs.git
-            pkgs.nix
-          ];
         };
+      in {
+        apps =
+          {
+            clean = mkWorkflowApp "clean" [pkgs.nix];
+            update = mkWorkflowApp "update" [
+              pkgs.git
+              pkgs.nix
+            ];
+          }
+          // hostApps;
 
         checks = {
           default = formattingCheck;

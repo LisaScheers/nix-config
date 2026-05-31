@@ -24,7 +24,9 @@ jobs:
         run: nix flake update
 
       - name: Validate updated flake
-        run: nix flake check
+        run: |
+          nix flake check --all-systems --no-build
+          nix flake check
 
       - name: Check for lock file changes
         id: lock_changes

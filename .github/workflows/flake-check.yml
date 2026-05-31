@@ -18,7 +18,10 @@ jobs:
       - name: Show flake metadata
         run: |
           nix flake metadata
-          nix flake show
+          nix flake show --all-systems
+
+      - name: Evaluate all supported systems
+        run: nix flake check --all-systems --no-build
 
       - name: Check flake on native runner
         run: nix flake check

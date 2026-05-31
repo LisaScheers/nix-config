@@ -30,7 +30,9 @@ Host configurations are currently declared for:
 - `Lisas-private-MacBook-Pro` on `aarch64-darwin`
 - `home-server` on `x86_64-linux`
 
-CI runs `nix flake check` on the native GitHub Linux runner. `nix flake check --all-systems` requires matching Darwin and aarch64 builders, so run it locally only when those builders are available.
+`x86_64-darwin` is kept as transitional Intel Mac support. Nixpkgs 26.05 warns that it is the last release supporting that platform, so remove it from `config.nix` when Intel Mac outputs are no longer needed.
+
+CI evaluates every declared supported system with `nix flake check --all-systems --no-build`, then runs `nix flake check` on the native GitHub Linux runner. Full `nix flake check --all-systems` builds require matching Darwin and aarch64 builders, so run it only where those builders are available.
 
 ## Development
 
@@ -68,13 +70,13 @@ The flake exposes thin `nix run` wrappers around checked-in scripts under `apps/
 
 | Command | Description |
 | :--- | :--- |
-| `nix run .#build` | Build the host configuration for the current supported system |
-| `nix run .#build-switch` | Build and switch the host configuration for the current supported system |
+| `nix run .#build` | Build the host configuration for the current system when a host is declared |
+| `nix run .#build-switch` | Build and switch the host configuration for the current system when a host is declared |
 | `nix run .#apply` | Alias for `build-switch` |
 | `nix run .#update` | Run `nix flake update` |
 | `nix run .#clean` | Run `nix-collect-garbage --delete-older-than 14d` |
 
-`build-switch`, `apply`, `update`, and `clean` have side effects. The scripts print the target host or system before running.
+`build`, `build-switch`, and `apply` are exposed only for systems with declared host outputs. `build-switch`, `apply`, `update`, and `clean` have side effects. The scripts print the target host or system before running.
 
 ## Just Commands
 
