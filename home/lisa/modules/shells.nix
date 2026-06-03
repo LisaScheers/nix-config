@@ -4,13 +4,14 @@
   ...
 }: let
   codexAlias = "nix run github:sadjow/codex-cli-nix -- --yolo";
+  homeDirectory = config.home.homeDirectory;
 in {
   home.sessionVariables = {
     NIXPKGS_ALLOW_UNFREE = "1";
     EDITOR = "code --wait";
     VISUAL = "code --wait";
     SOPS_AGE_KEY_CMD = "op item get ympq3ilboihqml7agfdb5ejxay --fields notesPlain --format=json | jq .value -r";
-    SSH_AUTH_SOCK = "~/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+    SSH_AUTH_SOCK = "${homeDirectory}/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   };
 
   programs.bash = {

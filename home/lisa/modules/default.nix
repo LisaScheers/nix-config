@@ -8,5 +8,6 @@
     ./shells.nix
     ./ssh.nix
     ./starship.nix
+    ./xdg.nix
   ];
 }
