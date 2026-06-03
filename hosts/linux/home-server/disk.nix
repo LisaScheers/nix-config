@@ -1,25 +1,63 @@
-{}: {
-  disko = {
-    devices = {
-      disk = {
-        device = "/dev/disk/by-id/nvme-Samsung_SSD_980_500GB_S392NF0N512288N-part1";
-        type = "disk";
-        format = "gpt";
-      };
-      partition = {
-        device = "/dev/disk/by-id/nvme-Samsung_SSD_980_500GB_S392NF0N512288N-part1";
-        type = "partition";
-        format = "gpt";
+{localConfig, ...}: let
+  dataDisk = device: mountpoint: {
+    inherit device;
+    type = "disk";
+    content = {
+      type = "gpt";
+      partitions.data = {
         size = "100%";
-        fsType = "ext4";
+        content = {
+          type = "filesystem";
+          format = "ext4";
+          inherit mountpoint;
+          mountOptions = [
+            "defaults"
+            "noauto"
+            "nofail"
+            "x-systemd.device-timeout=5s"
+          ];
+        };
       };
     };
   };
-  filesystems = {
-    ext4 = {
-      mountpoint = "/";
-      device = "/dev/disk/by-id/nvme-Samsung_SSD_980_500GB_S392NF0N512288N-part1";
-      fsType = "ext4";
+in {
+  disko.devices.disk = {
+    system = {
+      device = localConfig.nixosDiskDevices.system;
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          MBR = {
+            priority = 0;
+            size = "1M";
+            type = "EF02";
+          };
+          ESP = {
+            priority = 1;
+            size = "500M";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = ["umask=0077"];
+            };
+          };
+          root = {
+            priority = 2;
+            size = "100%";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+            };
+          };
+        };
+      };
     };
+    "xcp-ng-nvme" = dataDisk localConfig.nixosDiskDevices.xcpNgNvme "/srv/disks/xcp-ng-nvme";
+    "kingston-ssd" = dataDisk localConfig.nixosDiskDevices.kingstonSsd "/srv/disks/kingston-ssd";
+    "western-digital-hdd" = dataDisk localConfig.nixosDiskDevices.westernDigitalHdd "/srv/disks/western-digital-hdd";
   };
 }

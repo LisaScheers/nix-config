@@ -18,5 +18,7 @@
     orbstack
     slack
     the-unarchiver
+    oxfmt
+    oxlint
   ];
 }

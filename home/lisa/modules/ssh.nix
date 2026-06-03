@@ -55,6 +55,13 @@
         IdentitiesOnly = true;
       };
 
+      "home-server" = {
+        HostName = "192.168.111.2";
+        User = "lisa";
+        IdentityFile = "~/.ssh/home-server.pub";
+        IdentitiesOnly = true;
+      };
+
       "router" = {
         HostName = "192.168.1.1";
         User = "root";

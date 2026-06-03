@@ -15,6 +15,10 @@
       url = "https://flakehub.com/f/Mic92/sops-nix/0.1.*";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-homebrew = {
       url = "github:zhaofengli/nix-homebrew";
     };
@@ -80,6 +84,8 @@
             inherit localConfig;
           };
           modules = [
+            inputs.disko.nixosModules.disko
+            inputs.sops-nix.nixosModules.sops
             ./hosts/linux/home-server/default.nix
           ];
         };

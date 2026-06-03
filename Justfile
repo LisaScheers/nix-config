@@ -16,6 +16,31 @@ darwin host="Lisas-private-MacBook-Pro":
 nixos host="home-server":
     nixos-rebuild switch --flake .#"{{host}}"
 
+# Install the home server with nixos-anywhere.
+# WARNING: this repartitions and formats the disk configured in config.nix.
+nixos-install target host="home-server":
+    nix develop --command nixos-anywhere --generate-hardware-config nixos-generate-config ./hosts/linux/"{{host}}"/hardware-configuration.nix --flake .#"{{host}}" --target-host "{{target}}"
+
+# Install using password auth. Set SSHPASS in the environment before running this.
+# WARNING: this repartitions and formats the disk configured in config.nix.
+nixos-install-password target host="home-server":
+    nix develop --command nixos-anywhere --env-password --generate-hardware-config nixos-generate-config ./hosts/linux/"{{host}}"/hardware-configuration.nix --flake .#"{{host}}" --target-host "{{target}}"
+
+# Install from an already-booted NixOS installer environment, skipping kexec.
+# WARNING: this repartitions and formats the disks configured in config.nix.
+nixos-install-from-installer target host="home-server":
+    nix develop --command nixos-anywhere --phases disko,install,reboot --generate-hardware-config nixos-generate-config ./hosts/linux/"{{host}}"/hardware-configuration.nix --flake .#"{{host}}" --target-host "{{target}}"
+
+# Install from an already-booted NixOS installer environment with password auth.
+# WARNING: this repartitions and formats the disks configured in config.nix.
+nixos-install-from-installer-password target host="home-server":
+    nix develop --command nixos-anywhere --env-password --phases disko,install,reboot --generate-hardware-config nixos-generate-config ./hosts/linux/"{{host}}"/hardware-configuration.nix --flake .#"{{host}}" --target-host "{{target}}"
+
+# Install from an already-booted NixOS installer environment with a specific SSH key.
+# WARNING: this repartitions and formats the disks configured in config.nix.
+nixos-install-from-installer-key target identity="/tmp/home-server-installer-ed25519" host="home-server":
+    nix develop --command nixos-anywhere -i "{{identity}}" --phases disko,install,reboot --generate-hardware-config nixos-generate-config ./hosts/linux/"{{host}}"/hardware-configuration.nix --flake .#"{{host}}" --target-host "{{target}}"
+
 # Initialize secrets file with sops (run once before first use)
 sops-init file="secrets/secrets.yaml":
     @echo "Initializing encrypted secrets file..."

@@ -4,6 +4,9 @@
   ...
 }: {
   imports = [
+    ./disk.nix
+    ./hardware-configuration.nix
+    ./modules/acme.nix
     ./modules/base
     ./modules/home-assistant.nix
   ];
