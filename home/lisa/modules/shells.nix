@@ -36,11 +36,12 @@ in {
 
   programs.nushell = {
     enable = true;
-    plugins = [
-      pkgs.nushellPlugins.polars
-      pkgs.nushellPlugins.formats
-      pkgs.nushellPlugins.gstat
-      pkgs.nushellPlugins.query
+    plugins = with pkgs.nushellPlugins; [
+      polars
+      formats
+      gstat
+      query
+      semver
     ];
     settings.show_banner = false;
     extraEnv = "alias codex = ${codexAlias}";
