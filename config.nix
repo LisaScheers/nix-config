@@ -12,6 +12,8 @@
   darwinHomeDirectory = "/Users/lisa";
 
   nixosHost = "home-server";
+  nixosDeployTarget = "lisa@192.168.111.2";
+  nixosDeployRemoteDir = "/tmp/nix-config-deploy";
   nixosSystem = "x86_64-linux";
   nixosDiskDevices = {
     system = "/dev/disk/by-id/nvme-eui.002538ba71b63d8a";

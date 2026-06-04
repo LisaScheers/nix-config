@@ -9,6 +9,7 @@
     ./modules/acme.nix
     ./modules/base
     ./modules/home-assistant.nix
+    ./modules/monitoring.nix
   ];
 
   system.configurationRevision = lib.mkDefault flakeRevision;

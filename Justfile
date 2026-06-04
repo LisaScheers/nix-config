@@ -95,6 +95,11 @@ build:
 apply:
     nix run .#build-switch
 
+# Deploy the current working tree to the home-server and switch it.
+# Uses normal SSH auth, or password auth when SSHPASS is set.
+deploy-home-server:
+    nix run .#deploy-home-server
+
 # Check whether the current machine is authenticated to FlakeHub Cache
 flakehub-status:
     determinate-nixd status

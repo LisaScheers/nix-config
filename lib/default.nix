@@ -29,6 +29,8 @@
         export NIX_CONFIG_HOST_KIND=${lib.escapeShellArg hostKind}
         export NIX_CONFIG_DARWIN_HOST=${lib.escapeShellArg localConfig.darwinHost}
         export NIX_CONFIG_NIXOS_HOST=${lib.escapeShellArg localConfig.nixosHost}
+        export NIX_CONFIG_NIXOS_DEPLOY_TARGET=${lib.escapeShellArg localConfig.nixosDeployTarget}
+        export NIX_CONFIG_NIXOS_DEPLOY_REMOTE_DIR=${lib.escapeShellArg localConfig.nixosDeployRemoteDir}
         export NIX_CONFIG_GC_AGE=${lib.escapeShellArg localConfig.garbageCollectionAge}
 
         exec ${pkgs.bash}/bin/bash ${script} "$@"

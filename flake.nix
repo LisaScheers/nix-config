@@ -116,6 +116,13 @@
           };
         buildApp = mkWorkflowApp "build" rebuildRuntimeInputs;
         buildSwitchApp = mkWorkflowApp "build-switch" rebuildRuntimeInputs;
+        deployHomeServerApp = mkWorkflowApp "deploy-home-server" [
+          pkgs.coreutils
+          pkgs.gnutar
+          pkgs.gzip
+          pkgs.openssh
+          pkgs.sshpass
+        ];
         nixSource = localLib.mkNixSource lib;
         formattingCheck = localLib.mkFormattingCheck {
           inherit pkgs;
@@ -135,6 +142,7 @@
               pkgs.git
               pkgs.nix
             ];
+            deploy-home-server = deployHomeServerApp;
           }
           // hostApps;
 
