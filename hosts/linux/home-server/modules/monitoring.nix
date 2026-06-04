@@ -13,6 +13,8 @@
   homeAssistantPort = 8123;
   nginxExporterAddress = "127.0.0.1";
   nginxExporterPort = 9113;
+  unboundExporterAddress = "127.0.0.1";
+  unboundExporterPort = 9167;
   mimirAddress = "127.0.0.1";
   mimirPort = 9009;
   tempoAddress = "127.0.0.1";
@@ -160,15 +162,16 @@
 
   dashboards = {
     "home-server-overview" = dashboard "home-server-overview" "Home Server Overview" ["home-server" "host"] [
-      (statPanel 1 "Node up" 0 0 6 4 [(prometheusTarget "A" ''up{job="integrations/node_exporter"}'' "node")] "none")
-      (statPanel 2 "Alloy up" 6 0 6 4 [(prometheusTarget "A" ''up{job="alloy"}'' "alloy")] "none")
-      (statPanel 3 "Mimir up" 12 0 6 4 [(prometheusTarget "A" ''up{job="mimir"}'' "mimir")] "none")
-      (statPanel 4 "Grafana up" 18 0 6 4 [(prometheusTarget "A" ''up{job="grafana"}'' "grafana")] "none")
+      (statPanel 1 "Node up" 0 0 5 4 [(prometheusTarget "A" ''up{job="integrations/node_exporter"}'' "node")] "none")
+      (statPanel 2 "Alloy up" 5 0 5 4 [(prometheusTarget "A" ''up{job="alloy"}'' "alloy")] "none")
+      (statPanel 3 "Mimir up" 10 0 5 4 [(prometheusTarget "A" ''up{job="mimir"}'' "mimir")] "none")
+      (statPanel 4 "Grafana up" 15 0 5 4 [(prometheusTarget "A" ''up{job="grafana"}'' "grafana")] "none")
+      (statPanel 10 "Unbound up" 20 0 4 4 [(prometheusTarget "A" ''up{job="unbound"}'' "unbound")] "none")
       (timeseriesPanel 5 "CPU usage" 0 4 12 8 [(prometheusTarget "A" ''100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'' "CPU")] "percent")
       (timeseriesPanel 6 "Memory usage" 12 4 12 8 [(prometheusTarget "A" ''100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)'' "memory")] "percent")
       (timeseriesPanel 7 "Filesystem usage" 0 12 12 8 [(prometheusTarget "A" ''100 * (1 - node_filesystem_avail_bytes{mountpoint=~"/|/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"} / node_filesystem_size_bytes{mountpoint=~"/|/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"})'' "{{mountpoint}}")] "percent")
       (timeseriesPanel 8 "Load average" 12 12 12 8 [(prometheusTarget "A" ''node_load1'' "1m") (prometheusTarget "B" ''node_load5'' "5m") (prometheusTarget "C" ''node_load15'' "15m")] "none")
-      (logsPanel 9 "System logs" 0 20 24 8 ''{unit=~"alloy.service|grafana.service|loki.service|mimir.service|nginx.service|podman-home-assistant.service|prometheus-nginx-exporter.service|pyroscope.service|tempo.service"}'')
+      (logsPanel 9 "System logs" 0 20 24 8 ''{unit=~"alloy.service|grafana.service|loki.service|mimir.service|nginx.service|podman-home-assistant.service|prometheus-nginx-exporter.service|prometheus-unbound-exporter.service|pyroscope.service|tempo.service|unbound.service"}'')
     ];
 
     "observability-stack" = dashboard "observability-stack" "Observability Stack" ["grafana" "lgtm"] [
@@ -186,6 +189,19 @@
       (timeseriesPanel 3 "Connections" 0 8 12 8 [(prometheusTarget "A" ''nginx_connections_active'' "active") (prometheusTarget "B" ''nginx_connections_reading'' "reading") (prometheusTarget "C" ''nginx_connections_writing'' "writing") (prometheusTarget "D" ''nginx_connections_waiting'' "waiting")] "short")
       (timeseriesPanel 4 "Accepted and handled connections" 12 8 12 8 [(prometheusTarget "A" ''rate(nginx_connections_accepted[5m])'' "accepted/s") (prometheusTarget "B" ''rate(nginx_connections_handled[5m])'' "handled/s")] "cps")
       (logsPanel 5 "Nginx logs" 0 16 24 8 ''{unit="nginx.service"}'')
+    ];
+
+    "dns" = dashboard "dns" "DNS" ["dns" "unbound"] [
+      (statPanel 1 "Unbound up" 0 0 6 4 [(prometheusTarget "A" ''up{job="unbound"}'' "unbound")] "none")
+      (statPanel 2 "Queries/s" 6 0 6 4 [(prometheusTarget "A" ''sum(rate(unbound_queries_total{job="unbound"}[5m]))'' "queries")] "qps")
+      (statPanel 3 "Cache hit ratio" 12 0 6 4 [(prometheusTarget "A" ''100 * sum(rate(unbound_cache_hits_total{job="unbound"}[5m])) / (sum(rate(unbound_cache_hits_total{job="unbound"}[5m])) + sum(rate(unbound_cache_misses_total{job="unbound"}[5m])))'' "hit ratio")] "percent")
+      (statPanel 4 "Request queue" 18 0 6 4 [(prometheusTarget "A" ''sum(unbound_request_list_current_all{job="unbound"})'' "queue")] "short")
+      (timeseriesPanel 5 "Query rate" 0 4 12 8 [(prometheusTarget "A" ''sum(rate(unbound_queries_total{job="unbound"}[5m]))'' "queries/s")] "qps")
+      (timeseriesPanel 6 "Cache" 12 4 12 8 [(prometheusTarget "A" ''sum(rate(unbound_cache_hits_total{job="unbound"}[5m]))'' "hits/s") (prometheusTarget "B" ''sum(rate(unbound_cache_misses_total{job="unbound"}[5m]))'' "misses/s")] "ops")
+      (timeseriesPanel 7 "Response codes" 0 12 12 8 [(prometheusTarget "A" ''sum by (rcode) (rate(unbound_answer_rcodes_total{job="unbound"}[5m]))'' "{{rcode}}")] "qps")
+      (timeseriesPanel 8 "Query types" 12 12 12 8 [(prometheusTarget "A" ''sum by (type) (rate(unbound_query_types_total{job="unbound"}[5m]))'' "{{type}}")] "qps")
+      (timeseriesPanel 9 "P95 response time" 0 20 12 8 [(prometheusTarget "A" ''histogram_quantile(0.95, sum(rate(unbound_response_time_seconds_bucket{job="unbound"}[5m])) by (le))'' "p95")] "s")
+      (logsPanel 10 "Unbound logs" 12 20 12 8 ''{unit=~"unbound.service|prometheus-unbound-exporter.service"}'')
     ];
 
     "home-assistant" = dashboard "home-assistant" "Home Assistant" ["home-assistant" "iot"] [
@@ -262,6 +278,14 @@
     prometheus.scrape "nginx" {
       targets = [
         {"__address__" = "${nginxExporterAddress}:${toString nginxExporterPort}", "job" = "nginx", "instance" = constants.hostname},
+      ]
+      forward_to      = [prometheus.remote_write.mimir.receiver]
+      scrape_interval = "15s"
+    }
+
+    prometheus.scrape "unbound" {
+      targets = [
+        {"__address__" = "${unboundExporterAddress}:${toString unboundExporterPort}", "job" = "unbound", "instance" = constants.hostname},
       ]
       forward_to      = [prometheus.remote_write.mimir.receiver]
       scrape_interval = "15s"
