@@ -18,18 +18,30 @@
       <regex type="pcre2">^CEF:\d+\|Ubiquiti\|UniFi Network\|([^|]+)\|([^|]+)\|([^|]+)\|([^|]+)\|(.*)</regex>
       <order>unifi.version,unifi.event_id,unifi.event,unifi.severity,unifi.extension</order>
     </decoder>
+
+    <decoder name="unifi-cef-syslog">
+      <program_name>CEF</program_name>
+      <prematch type="pcre2">^\d+\|Ubiquiti\|UniFi Network\|</prematch>
+      <regex type="pcre2">^\d+\|Ubiquiti\|UniFi Network\|([^|]+)\|([^|]+)\|([^|]+)\|([^|]+)\|(.*)</regex>
+      <order>unifi.version,unifi.event_id,unifi.event,unifi.severity,unifi.extension</order>
+    </decoder>
   '';
   unifiRules = pkgs.writeText "wazuh-unifi-rules.xml" ''
     <group name="unifi,ubiquiti,cef,">
-      <rule id="110500" level="3">
+      <rule id="110500" level="6">
         <decoded_as>unifi-cef</decoded_as>
         <description>UniFi event: $(unifi.event)</description>
       </rule>
 
-      <rule id="110501" level="8">
-        <if_sid>110500</if_sid>
+      <rule id="110501" level="10">
+        <if_sid>110500,110502</if_sid>
         <field name="unifi.event" type="pcre2">^(Admin Login Failed|Threat Detected|Blocked by Firewall|Honeypot Triggered)$</field>
         <description>UniFi security event: $(unifi.event)</description>
+      </rule>
+
+      <rule id="110502" level="6">
+        <decoded_as>unifi-cef-syslog</decoded_as>
+        <description>UniFi event: $(unifi.event)</description>
       </rule>
     </group>
   '';
