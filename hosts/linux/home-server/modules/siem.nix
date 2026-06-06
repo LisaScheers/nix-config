@@ -5,13 +5,172 @@
 }: let
   domain = "wazuh.local.bylisa.dev";
   version = "4.14.5";
+  agentName = "home-server";
   stateDir = "/var/lib/wazuh-docker";
   secretsDir = "/var/lib/wazuh-siem-secrets";
   workDir = "${stateDir}/single-node";
-  unifiSyslogAllowedIps = "192.168.111.0/24";
+  unifiSyslogAllowedIps = [
+    "192.168.50.0/24"
+    "192.168.111.0/24"
+  ];
+  unifiSyslogAllowedIpConfigExpr = "[${lib.concatMapStringsSep ", " (ip: ''"    <allowed-ips>${ip}</allowed-ips>"'') unifiSyslogAllowedIps}]";
   authentikMetadataUrl = "https://auth.bylisa.dev/api/v3/providers/saml/3/metadata/";
   proxyErrorPage = import ./nginx-error-page.nix {inherit pkgs;};
   compose = "${pkgs.docker-compose}/bin/docker-compose";
+  unifiExtensionFields = [
+    {
+      key = "UNIFIcategory";
+      field = "unifi.category";
+    }
+    {
+      key = "UNIFIhost";
+      field = "unifi.host";
+    }
+    {
+      key = "proto";
+      field = "protocol";
+    }
+    {
+      key = "spt";
+      field = "srcport";
+    }
+    {
+      key = "dpt";
+      field = "dstport";
+    }
+    {
+      key = "act";
+      field = "action";
+    }
+    {
+      key = "app";
+      field = "unifi.app";
+    }
+    {
+      key = "UNIFIrisk";
+      field = "unifi.risk";
+    }
+    {
+      key = "UNIFIpolicyName";
+      field = "unifi.policy_name";
+    }
+    {
+      key = "UNIFIpolicyType";
+      field = "unifi.policy_type";
+    }
+    {
+      key = "UNIFIdirection";
+      field = "unifi.direction";
+    }
+    {
+      key = "deviceOutboundInterface";
+      field = "unifi.device_outbound_interface";
+    }
+    {
+      key = "UNIFIdeviceMac";
+      field = "unifi.device_mac";
+    }
+    {
+      key = "UNIFIdeviceName";
+      field = "unifi.device_name";
+    }
+    {
+      key = "UNIFIdeviceModel";
+      field = "unifi.device_model";
+    }
+    {
+      key = "UNIFIdeviceIp";
+      field = "unifi.device_ip";
+    }
+    {
+      key = "UNIFIdeviceVersion";
+      field = "unifi.device_version";
+    }
+    {
+      key = "src";
+      field = "srcip";
+    }
+    {
+      key = "dst";
+      field = "dstip";
+    }
+    {
+      key = "UNIFIsrcRegion";
+      field = "unifi.src_region";
+    }
+    {
+      key = "UNIFIdstZone";
+      field = "unifi.dst_zone";
+    }
+    {
+      key = "UNIFItotalBytes";
+      field = "unifi.total_bytes";
+    }
+    {
+      key = "UNIFItotalPackets";
+      field = "unifi.total_packets";
+    }
+    {
+      key = "UNIFIpacketsReceived";
+      field = "unifi.packets_received";
+    }
+    {
+      key = "UNIFIpacketsSent";
+      field = "unifi.packets_sent";
+    }
+    {
+      key = "UNIFIbytesReceived";
+      field = "unifi.bytes_received";
+    }
+    {
+      key = "UNIFIbytesSent";
+      field = "unifi.bytes_sent";
+    }
+    {
+      key = "UNIFIflowCount";
+      field = "unifi.flow_count";
+    }
+    {
+      key = "UNIFIflowId";
+      field = "unifi.flow_id";
+    }
+    {
+      key = "UNIFIflowStartTime";
+      field = "unifi.flow_start_time";
+    }
+    {
+      key = "UNIFIipsSessionId";
+      field = "unifi.ips_session_id";
+    }
+    {
+      key = "UNIFIipsSignature";
+      field = "unifi.ips_signature";
+    }
+    {
+      key = "UNIFIipsSignatureId";
+      field = "unifi.ips_signature_id";
+    }
+    {
+      key = "UNIFIutcTime";
+      field = "unifi.utc_time";
+    }
+    {
+      key = "msg";
+      field = "unifi.message";
+    }
+  ];
+  mkUnifiExtensionDecoder = parent: field: ''
+    <decoder name="${parent}">
+      <parent>${parent}</parent>
+      <regex type="pcre2">(?:^|[ |])${field.key}=(.*?)(?= [A-Za-z][A-Za-z0-9]*=|$)</regex>
+      <order>${field.field}</order>
+    </decoder>
+  '';
+  unifiExtensionDecoders = lib.concatMapStringsSep "\n" (parent:
+    lib.concatMapStringsSep "\n" (mkUnifiExtensionDecoder parent) unifiExtensionFields) [
+    "unifi-cef"
+    "unifi-cef-syslog"
+  ];
   unifiDecoder = pkgs.writeText "wazuh-unifi-decoder.xml" ''
     <decoder name="unifi-cef">
       <prematch type="pcre2">^CEF:\d+\|Ubiquiti\|UniFi Network\|</prematch>
@@ -25,6 +184,8 @@
       <regex type="pcre2">^\d+\|Ubiquiti\|UniFi Network\|([^|]+)\|([^|]+)\|([^|]+)\|([^|]+)\|(.*)</regex>
       <order>unifi.version,unifi.event_id,unifi.event,unifi.severity,unifi.extension</order>
     </decoder>
+
+    ${unifiExtensionDecoders}
   '';
   unifiRules = pkgs.writeText "wazuh-unifi-rules.xml" ''
     <group name="unifi,ubiquiti,cef,">
@@ -33,17 +194,150 @@
         <description>UniFi event: $(unifi.event)</description>
       </rule>
 
-      <rule id="110501" level="10">
-        <if_sid>110500,110502</if_sid>
-        <field name="unifi.event" type="pcre2">^(Admin Login Failed|Threat Detected|Blocked by Firewall|Honeypot Triggered)$</field>
-        <description>UniFi security event: $(unifi.event)</description>
-      </rule>
-
       <rule id="110502" level="6">
         <decoded_as>unifi-cef-syslog</decoded_as>
         <description>UniFi event: $(unifi.event)</description>
       </rule>
+
+      <rule id="110501" level="10">
+        <if_sid>110500,110502</if_sid>
+        <field name="unifi.event" type="pcre2">^(Admin Login Failed|Threat Detected|Threat Detected and Blocked|Threat Detected and Allowed|Blocked by Firewall|Honeypot Triggered)$</field>
+        <description>UniFi security event: $(unifi.event)</description>
+      </rule>
+
+      <rule id="110503" level="12">
+        <if_sid>110501</if_sid>
+        <field name="unifi.policy_name" type="pcre2">^TOR$</field>
+        <description>UniFi IDS/IPS TOR block: $(srcip) -> $(dstip): $(unifi.ips_signature)</description>
+      </rule>
+
+      <rule id="110504" level="12">
+        <if_sid>110501</if_sid>
+        <field name="unifi.event" type="pcre2">^Threat Detected and Blocked$</field>
+        <description>UniFi threat blocked: $(srcip):$(srcport) -> $(dstip):$(dstport): $(unifi.ips_signature)</description>
+      </rule>
     </group>
+  '';
+  wazuhAgentConfig = pkgs.writeText "wazuh-agent-ossec.conf" ''
+    <ossec_config>
+      <client>
+        <server>
+          <address>CHANGE_MANAGER_IP</address>
+          <port>CHANGE_MANAGER_PORT</port>
+          <protocol>tcp</protocol>
+        </server>
+        <config-profile>linux, nixos</config-profile>
+        <notify_time>10</notify_time>
+        <time-reconnect>60</time-reconnect>
+        <auto_restart>yes</auto_restart>
+        <crypto_method>aes</crypto_method>
+        <enrollment>
+          <enabled>yes</enabled>
+          <manager_address>CHANGE_ENROLL_IP</manager_address>
+          <port>CHANGE_ENROLL_PORT</port>
+          <agent_name>CHANGE_AGENT_NAME</agent_name>
+          <authorization_pass_path>etc/authd.pass</authorization_pass_path>
+          <groups>CHANGE_AGENT_GROUP</groups>
+        </enrollment>
+      </client>
+
+      <client_buffer>
+        <disabled>no</disabled>
+        <queue_size>5000</queue_size>
+        <events_per_second>500</events_per_second>
+      </client_buffer>
+
+      <rootcheck>
+        <disabled>no</disabled>
+        <check_files>yes</check_files>
+        <check_trojans>yes</check_trojans>
+        <check_dev>yes</check_dev>
+        <check_sys>yes</check_sys>
+        <check_pids>yes</check_pids>
+        <check_ports>yes</check_ports>
+        <check_if>yes</check_if>
+        <frequency>43200</frequency>
+        <rootkit_files>etc/shared/rootkit_files.txt</rootkit_files>
+        <rootkit_trojans>etc/shared/rootkit_trojans.txt</rootkit_trojans>
+        <skip_nfs>yes</skip_nfs>
+        <ignore>/host/var/lib/containerd</ignore>
+        <ignore>/host/var/lib/docker/overlay2</ignore>
+      </rootcheck>
+
+      <wodle name="docker-listener">
+        <disabled>no</disabled>
+      </wodle>
+
+      <wodle name="syscollector">
+        <disabled>no</disabled>
+        <interval>1h</interval>
+        <scan_on_start>yes</scan_on_start>
+        <hardware>yes</hardware>
+        <os>yes</os>
+        <network>yes</network>
+        <packages>yes</packages>
+        <ports all="yes">yes</ports>
+        <processes>yes</processes>
+        <synchronization>
+          <max_eps>10</max_eps>
+        </synchronization>
+      </wodle>
+
+      <sca>
+        <enabled>yes</enabled>
+        <scan_on_start>yes</scan_on_start>
+        <interval>12h</interval>
+        <skip_nfs>yes</skip_nfs>
+      </sca>
+
+      <syscheck>
+        <disabled>no</disabled>
+        <frequency>43200</frequency>
+        <scan_on_start>yes</scan_on_start>
+        <directories check_all="yes">/host/etc,/host/boot</directories>
+        <ignore>/host/etc/mtab</ignore>
+        <ignore>/host/etc/ssl/private.key</ignore>
+        <ignore type="sregex">.log$|.swp$</ignore>
+        <skip_nfs>yes</skip_nfs>
+        <skip_dev>yes</skip_dev>
+        <skip_proc>yes</skip_proc>
+        <skip_sys>yes</skip_sys>
+        <process_priority>10</process_priority>
+        <max_eps>50</max_eps>
+        <synchronization>
+          <enabled>yes</enabled>
+          <interval>5m</interval>
+          <max_eps>10</max_eps>
+        </synchronization>
+      </syscheck>
+
+      <localfile>
+        <log_format>syslog</log_format>
+        <location>/host/var/log/*.log</location>
+      </localfile>
+
+      <localfile>
+        <log_format>syslog</log_format>
+        <location>/host/var/log/*/*.log</location>
+      </localfile>
+
+      <active-response>
+        <disabled>no</disabled>
+        <ca_store>etc/wpk_root.pem</ca_store>
+        <ca_verification>yes</ca_verification>
+      </active-response>
+
+      <logging>
+        <log_format>plain</log_format>
+      </logging>
+    </ossec_config>
+
+    <ossec_config>
+      <localfile>
+        <log_format>syslog</log_format>
+        <location>/var/ossec/logs/active-responses.log</location>
+      </localfile>
+    </ossec_config>
   '';
   ensureWazuhRbac = pkgs.writeText "ensure-wazuh-saml-rbac.py" ''
     import base64
@@ -126,6 +420,32 @@
     )
     if unifi_manager_mounts not in compose:
         compose = compose.replace(manager_config_mount, manager_config_mount + unifi_manager_mounts)
+    agent_service = (
+        "  wazuh.agent:\n"
+        "    image: wazuh/wazuh-agent:${version}\n"
+        "    hostname: ${agentName}\n"
+        "    restart: always\n"
+        "    depends_on:\n"
+        "      - wazuh.manager\n"
+        "    environment:\n"
+        "      - WAZUH_MANAGER_SERVER=wazuh.manager\n"
+        "      - WAZUH_AGENT_NAME=${agentName}\n"
+        "      - WAZUH_AGENT_GROUP=default\n"
+        "    volumes:\n"
+        "      - wazuh_agent_etc:/var/ossec/etc\n"
+        "      - wazuh_agent_logs:/var/ossec/logs\n"
+        "      - wazuh_agent_queue:/var/ossec/queue\n"
+        "      - wazuh_agent_var:/var/ossec/var\n"
+        "      - ./config/wazuh_agent/ossec.conf:/wazuh-config-mount/etc/ossec.conf\n"
+        "      - /var/run/docker.sock:/var/run/docker.sock\n"
+        "      - /var/log:/host/var/log:ro\n"
+        "      - /etc:/host/etc:ro\n"
+        "      - /boot:/host/boot:ro\n"
+        "\n"
+    )
+    if "  wazuh.agent:" not in compose:
+        compose = compose.replace("\nvolumes:\n", "\n" + agent_service + "volumes:\n", 1)
+        compose = compose.rstrip() + "\n  wazuh_agent_etc:\n  wazuh_agent_logs:\n  wazuh_agent_queue:\n  wazuh_agent_var:\n"
     indexer_mount = "      - ./config/wazuh_indexer/internal_users.yml:/usr/share/wazuh-indexer/config/opensearch-security/internal_users.yml\n"
     saml_mounts = (
         "      - ./config/wazuh_indexer/config.yml:/usr/share/wazuh-indexer/config/opensearch-security/config.yml\n"
@@ -145,7 +465,7 @@
         "    <connection>syslog</connection>",
         "    <port>514</port>",
         "    <protocol>udp</protocol>",
-        "    <allowed-ips>${unifiSyslogAllowedIps}</allowed-ips>",
+        *${unifiSyslogAllowedIpConfigExpr},
         "  </remote>",
         "",
     )
@@ -316,6 +636,7 @@
 
     install -D -m 0644 ${unifiDecoder} config/wazuh_cluster/local_decoder.xml
     install -D -m 0644 ${unifiRules} config/wazuh_cluster/local_rules.xml
+    install -D -m 0644 ${wazuhAgentConfig} config/wazuh_agent/ossec.conf
 
     ${pkgs.curl}/bin/curl -fsSL ${authentikMetadataUrl} \
       | ${pkgs.python3}/bin/python3 -c 'import json,sys; sys.stdout.write(json.load(sys.stdin)["metadata"])' \
