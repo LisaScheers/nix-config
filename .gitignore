@@ -3,6 +3,10 @@ result
 result-*
 .direnv/
 
+# Local environment files
+.env
+.env.*
+
 # macOS
 .DS_Store
 .AppleDouble
@@ -14,6 +18,13 @@ result-*
 *.swo
 *~
 
-
 # flake.lock is intentionally tracked for reproducible input pins.
 .decrypted*
+*.decrypted
+*.decrypted.*
+*.dec
+*.dec.*
+*.plain
+*.plain.*
+*.agekey
+age-key.txt

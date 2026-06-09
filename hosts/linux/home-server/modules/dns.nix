@@ -14,6 +14,7 @@
     "dns.local.bylisa.dev."
     "grafana.local.bylisa.dev."
     "ha.local.bylisa.dev."
+    "neo4j.local.bylisa.dev."
     "wazuh.local.bylisa.dev."
   ];
   localRecords =

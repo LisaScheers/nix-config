@@ -1,4 +1,7 @@
 # Justfile for nix-config automation
+matrix-server := env_var_or_default("MATRIX_HOST", "lisa@100.87.26.75")
+matrix-flake := "matrix.bylisa.dev"
+matrix-ssh := "ssh -o IdentitiesOnly=yes -o IdentityFile=~/.ssh/hetzner-mc"
 
 # Default recipe - show available commands
 default:
@@ -99,6 +102,20 @@ apply:
 # Uses normal SSH auth, or password auth when SSHPASS is set.
 deploy-home-server:
     nix run .#deploy-home-server
+
+# Sync the current working tree to the Matrix server.
+matrix-sync:
+    rsync -a -e '{{matrix-ssh}}' --exclude=.direnv . {{matrix-server}}:~/flake
+
+# Deploy the current working tree to the Matrix server and switch it.
+matrix-switch:
+    just matrix-sync
+    {{matrix-ssh}} {{matrix-server}} -t "sudo nixos-rebuild switch --flake ~/flake#{{matrix-flake}}"
+
+# Test the Matrix server configuration remotely.
+matrix-check:
+    just matrix-sync
+    {{matrix-ssh}} {{matrix-server}} -t "sudo nixos-rebuild test --flake ~/flake#{{matrix-flake}}"
 
 # Check whether the current machine is authenticated to FlakeHub Cache
 flakehub-status:

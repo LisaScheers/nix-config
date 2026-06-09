@@ -1,10 +1,14 @@
 {
+  config,
   lib,
   pkgs,
   ...
 }: let
   grafanaDomain = "grafana.bylisa.dev";
   grafanaLocalDomain = "grafana.local.bylisa.dev";
+  authentikDomain = "auth.bylisa.dev";
+  authentikGrafanaApplicationSlug = "grafana";
+  authentikGrafanaClientId = "grafana";
   storageRoot = "/srv/disks/western-digital-hdd/monitoring";
 
   lokiAddress = "127.0.0.1";
@@ -28,6 +32,13 @@
   alloyPyroscopePort = 4041;
   alloyAddress = "127.0.0.1";
   alloyPort = 12345;
+  alloyOtlpGrpcPort = 4317;
+  alloyOtlpHttpPort = 4318;
+  mailcowHost = "mail";
+  mailcowPublicIpv4 = "188.245.70.181";
+  mailcowPublicIpv6 = "2a01:4f8:1c1e:ba3a::1";
+  matrixHost = "matrix.bylisa.dev";
+  matrixPublicIpv4 = "188.245.245.32";
   mimirUid = "mimir";
   lokiUid = "loki";
   tempoUid = "tempo";
@@ -162,25 +173,44 @@
 
   dashboards = {
     "home-server-overview" = dashboard "home-server-overview" "Home Server Overview" ["home-server" "host"] [
-      (statPanel 1 "Node up" 0 0 5 4 [(prometheusTarget "A" ''up{job="integrations/node_exporter"}'' "node")] "none")
-      (statPanel 2 "Alloy up" 5 0 5 4 [(prometheusTarget "A" ''up{job="alloy"}'' "alloy")] "none")
-      (statPanel 3 "Mimir up" 10 0 5 4 [(prometheusTarget "A" ''up{job="mimir"}'' "mimir")] "none")
-      (statPanel 4 "Grafana up" 15 0 5 4 [(prometheusTarget "A" ''up{job="grafana"}'' "grafana")] "none")
-      (statPanel 10 "Unbound up" 20 0 4 4 [(prometheusTarget "A" ''up{job="unbound"}'' "unbound")] "none")
+      (statPanel 1 "Node up" 0 0 4 4 [(prometheusTarget "A" ''up{job="integrations/node_exporter"}'' "node")] "none")
+      (statPanel 2 "Alloy up" 4 0 4 4 [(prometheusTarget "A" ''up{job="alloy"}'' "alloy")] "none")
+      (statPanel 3 "Mimir up" 8 0 4 4 [(prometheusTarget "A" ''up{job="mimir"}'' "mimir")] "none")
+      (statPanel 4 "Grafana up" 12 0 4 4 [(prometheusTarget "A" ''up{job="grafana"}'' "grafana")] "none")
+      (statPanel 10 "Unbound up" 16 0 4 4 [(prometheusTarget "A" ''up{job="unbound"}'' "unbound")] "none")
+      (statPanel 11 "Neo4j up" 20 0 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="neo4j.service",state="active"}'' "neo4j")] "none")
       (timeseriesPanel 5 "CPU usage" 0 4 12 8 [(prometheusTarget "A" ''100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'' "CPU")] "percent")
       (timeseriesPanel 6 "Memory usage" 12 4 12 8 [(prometheusTarget "A" ''100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)'' "memory")] "percent")
       (timeseriesPanel 7 "Filesystem usage" 0 12 12 8 [(prometheusTarget "A" ''100 * (1 - node_filesystem_avail_bytes{mountpoint=~"/|/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"} / node_filesystem_size_bytes{mountpoint=~"/|/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"})'' "{{mountpoint}}")] "percent")
       (timeseriesPanel 8 "Load average" 12 12 12 8 [(prometheusTarget "A" ''node_load1'' "1m") (prometheusTarget "B" ''node_load5'' "5m") (prometheusTarget "C" ''node_load15'' "15m")] "none")
-      (logsPanel 9 "System logs" 0 20 24 8 ''{unit=~"alloy.service|grafana.service|loki.service|mimir.service|nginx.service|podman-home-assistant.service|prometheus-nginx-exporter.service|prometheus-unbound-exporter.service|pyroscope.service|tempo.service|unbound.service"}'')
+      (logsPanel 9 "System logs" 0 20 24 8 ''{unit=~"alloy.service|grafana.service|loki.service|mimir.service|neo4j.service|nginx.service|podman-home-assistant.service|prometheus-nginx-exporter.service|prometheus-unbound-exporter.service|pyroscope.service|tempo.service|unbound.service"}'')
     ];
 
     "observability-stack" = dashboard "observability-stack" "Observability Stack" ["grafana" "lgtm"] [
-      (timeseriesPanel 1 "Stack target health" 0 0 24 8 [(prometheusTarget "A" ''up{job=~"grafana|loki|mimir|tempo|pyroscope|alloy"}'' "{{job}}")] "none")
+      (timeseriesPanel 1 "Stack target health" 0 0 24 8 [(prometheusTarget "A" ''up{job=~"grafana|loki|mimir|tempo|pyroscope|alloy"}'' "{{job}}") (prometheusTarget "B" ''node_systemd_unit_state{name="neo4j.service",state="active"}'' "neo4j")] "none")
       (timeseriesPanel 2 "Alloy remote write rate" 0 8 12 8 [(prometheusTarget "A" ''sum(rate(prometheus_remote_storage_samples_total[5m]))'' "samples/s")] "ops")
       (timeseriesPanel 3 "Alloy pending samples" 12 8 12 8 [(prometheusTarget "A" ''sum(prometheus_remote_storage_samples_pending)'' "pending")] "short")
       (timeseriesPanel 4 "Loki ingest requests" 0 16 12 8 [(prometheusTarget "A" ''sum(rate(loki_request_duration_seconds_count[5m])) by (route)'' "{{route}}")] "rps")
       (timeseriesPanel 5 "Mimir request rate" 12 16 12 8 [(prometheusTarget "A" ''sum(rate(cortex_request_duration_seconds_count[5m])) by (route)'' "{{route}}")] "rps")
-      (logsPanel 6 "Observability service logs" 0 24 24 8 ''{unit=~"alloy.service|grafana.service|loki.service|mimir.service|pyroscope.service|tempo.service"}'')
+      (timeseriesPanel 6 "Neo4j unit state" 0 24 12 8 [(prometheusTarget "A" ''node_systemd_unit_state{name="neo4j.service",state="active"}'' "active") (prometheusTarget "B" ''node_systemd_unit_state{name="neo4j.service",state="failed"}'' "failed")] "none")
+      (logsPanel 7 "Observability service logs" 12 24 12 8 ''{unit=~"alloy.service|grafana.service|loki.service|mimir.service|neo4j.service|pyroscope.service|tempo.service"}'')
+    ];
+
+    "matrix-remote" = dashboard "matrix-remote" "Matrix Remote Server" ["matrix" "remote" "host"] [
+      (statPanel 1 "Node up" 0 0 4 4 [(prometheusTarget "A" ''up{job="matrix-node", instance="${matrixHost}"}'' "node")] "none")
+      (statPanel 2 "Alloy up" 4 0 4 4 [(prometheusTarget "A" ''up{job="matrix-alloy", instance="${matrixHost}"}'' "alloy")] "none")
+      (statPanel 3 "Failed services" 8 0 4 4 [(prometheusTarget "A" ''sum(node_systemd_unit_state{instance="${matrixHost}", state="failed", name=~".+\\.service"}) or vector(0)'' "failed")] "short")
+      (statPanel 4 "Active services" 12 0 4 4 [(prometheusTarget "A" ''sum(node_systemd_unit_state{instance="${matrixHost}", state="active", name=~".+\\.service"})'' "active")] "short")
+      (statPanel 5 "Synapse metrics" 16 0 4 4 [(prometheusTarget "A" ''up{job="matrix-synapse", instance="${matrixHost}"}'' "synapse")] "none")
+      (statPanel 6 "Container metrics" 20 0 4 4 [(prometheusTarget "A" ''up{job="matrix-cadvisor", instance="${matrixHost}"}'' "cadvisor")] "none")
+      (timeseriesPanel 7 "CPU usage" 0 4 12 8 [(prometheusTarget "A" ''100 - (avg(rate(node_cpu_seconds_total{job="matrix-node", instance="${matrixHost}", mode="idle"}[5m])) * 100)'' "CPU")] "percent")
+      (timeseriesPanel 8 "Memory usage" 12 4 12 8 [(prometheusTarget "A" ''100 * (1 - node_memory_MemAvailable_bytes{job="matrix-node", instance="${matrixHost}"} / node_memory_MemTotal_bytes{job="matrix-node", instance="${matrixHost}"})'' "memory")] "percent")
+      (timeseriesPanel 9 "Filesystem usage" 0 12 12 8 [(prometheusTarget "A" ''100 * (1 - node_filesystem_avail_bytes{job="matrix-node", instance="${matrixHost}", mountpoint=~"/|/nix|/var", fstype!~"tmpfs|devtmpfs|overlay"} / node_filesystem_size_bytes{job="matrix-node", instance="${matrixHost}", mountpoint=~"/|/nix|/var", fstype!~"tmpfs|devtmpfs|overlay"})'' "{{mountpoint}}")] "percent")
+      (timeseriesPanel 10 "Load average" 12 12 12 8 [(prometheusTarget "A" ''node_load1{job="matrix-node", instance="${matrixHost}"}'' "1m") (prometheusTarget "B" ''node_load5{job="matrix-node", instance="${matrixHost}"}'' "5m") (prometheusTarget "C" ''node_load15{job="matrix-node", instance="${matrixHost}"}'' "15m")] "none")
+      (timeseriesPanel 11 "Key service state" 0 20 24 8 [(prometheusTarget "A" ''node_systemd_unit_state{instance="${matrixHost}", state="active", name=~"authentik.service|authentik-worker.service|bluesky-pds.service|cadvisor.service|docker.service|forgejo-runner-codeberg.service|matrix-synapse.service|nginx.service|postgresql.service|prometheus-nginx-exporter.service|prometheus-postgres-exporter.service|prometheus-redis-exporter.service|redis-authentik.service|shop-empty-track.service|sshd.service|stock-keeper.service|tailscaled.service|atm10-7-0.service"}'' "{{name}}")] "none")
+      (timeseriesPanel 12 "Scrape health" 0 28 12 8 [(prometheusTarget "A" ''up{instance="${matrixHost}", job=~"matrix-.+"}'' "{{job}}")] "none")
+      (timeseriesPanel 13 "Container CPU" 12 28 12 8 [(prometheusTarget "A" ''sum by (name) (rate(container_cpu_usage_seconds_total{job="matrix-cadvisor", instance="${matrixHost}", name!=""}[5m]))'' "{{name}}")] "cores")
+      (logsPanel 14 "Remote service logs" 0 36 24 8 ''{instance="${matrixHost}", source="journal"}'')
     ];
 
     "nginx" = dashboard "nginx" "Nginx" ["nginx" "proxy"] [
@@ -211,6 +241,27 @@
       (timeseriesPanel 4 "Python GC collections" 0 8 12 8 [(prometheusTarget "A" ''sum by (generation) (rate(python_gc_collections_total{job="home-assistant"}[5m]))'' "gen {{generation}}")] "ops")
       (timeseriesPanel 5 "Scrape health" 12 8 12 8 [(prometheusTarget "A" ''scrape_duration_seconds{job="home-assistant"}'' "duration") (prometheusTarget "B" ''scrape_samples_scraped{job="home-assistant"}'' "samples")] "short")
       (logsPanel 6 "Home Assistant logs" 0 16 24 8 ''{unit="podman-home-assistant.service"}'')
+    ];
+
+    "mailcow" = dashboard "mailcow" "Mailcow" ["mailcow" "mail"] [
+      (statPanel 1 "Mailcow exporter up" 0 0 6 4 [(prometheusTarget "A" ''up{job="mailcow-exporter", instance="${mailcowHost}"}'' "exporter")] "none")
+      (statPanel 2 "Mailcow node up" 6 0 6 4 [(prometheusTarget "A" ''up{job="mailcow-node", instance="${mailcowHost}"}'' "node")] "none")
+      (statPanel 3 "Container metrics up" 12 0 6 4 [(prometheusTarget "A" ''up{job="mailcow-cadvisor", instance="${mailcowHost}"}'' "cadvisor")] "none")
+      (statPanel 4 "Active domains" 18 0 6 4 [(prometheusTarget "A" ''sum(mailcow_domain_active{instance="${mailcowHost}"})'' "domains")] "short")
+      (timeseriesPanel 5 "Host CPU usage" 0 4 12 8 [(prometheusTarget "A" ''100 - (avg(rate(node_cpu_seconds_total{job="mailcow-node", instance="${mailcowHost}", mode="idle"}[5m])) * 100)'' "CPU")] "percent")
+      (timeseriesPanel 6 "Host memory usage" 12 4 12 8 [(prometheusTarget "A" ''100 * (1 - node_memory_MemAvailable_bytes{job="mailcow-node", instance="${mailcowHost}"} / node_memory_MemTotal_bytes{job="mailcow-node", instance="${mailcowHost}"})'' "memory")] "percent")
+      (timeseriesPanel 7 "Container CPU" 0 12 12 8 [(prometheusTarget "A" ''sum by (name) (rate(container_cpu_usage_seconds_total{job="mailcow-cadvisor", instance="${mailcowHost}", name=~"mailcowdockerized-.+"}[5m]))'' "{{name}}")] "cores")
+      (timeseriesPanel 8 "Container memory" 12 12 12 8 [(prometheusTarget "A" ''container_memory_working_set_bytes{job="mailcow-cadvisor", instance="${mailcowHost}", name=~"mailcowdockerized-.+"}'' "{{name}}")] "bytes")
+      (timeseriesPanel 9 "Exporter provider health" 0 20 12 8 [(prometheusTarget "A" ''mailcow_exporter_success{instance="${mailcowHost}"}'' "{{provider}}")] "none")
+      (timeseriesPanel 10 "Rspamd actions" 12 20 12 8 [(prometheusTarget "A" ''sum by (action) (rate(mailcow_rspamd_action{instance="${mailcowHost}"}[5m]))'' "{{action}}")] "ops")
+      (logsPanel 11 "Mailcow container logs" 0 28 12 8 ''{instance="${mailcowHost}", source="docker"}'')
+      (logsPanel 12 "Mail server journal" 12 28 12 8 ''{instance="${mailcowHost}", source="journal"}'')
+    ];
+
+    "neo4j" = dashboard "neo4j" "Neo4j" ["database" "neo4j"] [
+      (statPanel 1 "Neo4j up" 0 0 6 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="neo4j.service",state="active"}'' "neo4j")] "none")
+      (timeseriesPanel 2 "Unit state" 6 0 18 8 [(prometheusTarget "A" ''node_systemd_unit_state{name="neo4j.service",state="active"}'' "active") (prometheusTarget "B" ''node_systemd_unit_state{name="neo4j.service",state="failed"}'' "failed")] "none")
+      (logsPanel 4 "Neo4j logs" 0 8 24 8 ''{unit="neo4j.service"}'')
     ];
   };
 
@@ -329,11 +380,11 @@
 
     otelcol.receiver.otlp "local" {
       grpc {
-        endpoint = "127.0.0.1:4317"
+        endpoint = "${alloyAddress}:${toString alloyOtlpGrpcPort}"
       }
 
       http {
-        endpoint = "127.0.0.1:4318"
+        endpoint = "${alloyAddress}:${toString alloyOtlpHttpPort}"
       }
 
       output {
@@ -346,8 +397,20 @@
     otelcol.processor.batch "local" {
       output {
         metrics = [otelcol.exporter.prometheus.otlp_metrics.input]
-        logs    = [otelcol.exporter.loki.otlp_logs.input]
+        logs    = [otelcol.processor.attributes.loki_labels.input]
         traces  = [otelcol.exporter.otlp.tempo.input]
+      }
+    }
+
+    otelcol.processor.attributes "loki_labels" {
+      action {
+        key    = "loki.attribute.labels"
+        action = "insert"
+        value  = "unit, level, instance, source, job, transport"
+      }
+
+      output {
+        logs = [otelcol.exporter.loki.otlp_logs.input]
       }
     }
 
@@ -386,6 +449,20 @@
   '';
 in {
   environment.etc."alloy/config.alloy".source = alloyConfig;
+
+  sops.secrets."monitoring-otlp-htpasswd" = {
+    key = "data/monitoring-otlp-htpasswd";
+    owner = "nginx";
+    group = "nginx";
+    mode = "0440";
+  };
+
+  sops.secrets."grafana-authentik-client-secret" = {
+    key = "data/grafana-authentik-client-secret";
+    owner = "grafana";
+    group = "grafana";
+    mode = "0440";
+  };
 
   systemd.tmpfiles.rules = [
     "d ${storageRoot} 0755 root root -"
@@ -431,6 +508,20 @@ in {
       analytics.reporting_enabled = false;
       log.mode = "console";
       metrics.enabled = true;
+      auth.signout_redirect_url = "https://${authentikDomain}/application/o/${authentikGrafanaApplicationSlug}/end-session/";
+      "auth.generic_oauth" = {
+        enabled = true;
+        name = "authentik";
+        allow_sign_up = true;
+        client_id = authentikGrafanaClientId;
+        client_secret = "$__file{${config.sops.secrets."grafana-authentik-client-secret".path}}";
+        scopes = "openid email profile";
+        auth_url = "https://${authentikDomain}/application/o/authorize/";
+        token_url = "https://${authentikDomain}/application/o/token/";
+        api_url = "https://${authentikDomain}/application/o/userinfo/";
+        use_pkce = true;
+        role_attribute_path = "contains(groups, 'Grafana Admins') && 'Admin' || contains(groups, 'Grafana Editors') && 'Editor' || 'Viewer'";
+      };
       security = {
         admin_user = "admin";
         secret_key = "$__file{${storageRoot}/grafana/secret_key}";
@@ -644,6 +735,7 @@ in {
         data_dir = "${storageRoot}/mimir/compactor";
         sharding_ring.kvstore.store = "memberlist";
       };
+      limits.max_label_names_per_series = 60;
       distributor.ring = {
         instance_addr = mimirAddress;
         kvstore.store = "memberlist";
@@ -742,6 +834,21 @@ in {
       locations."/" = {
         proxyPass = "http://127.0.0.1:3000";
         proxyWebsockets = true;
+      };
+      locations."/otlp/" = {
+        proxyPass = "http://${alloyAddress}:${toString alloyOtlpHttpPort}/";
+        extraConfig = ''
+          allow ${mailcowPublicIpv4};
+          allow ${mailcowPublicIpv6};
+          allow ${matrixPublicIpv4};
+          deny all;
+
+          auth_basic "OTLP";
+          auth_basic_user_file ${config.sops.secrets."monitoring-otlp-htpasswd".path};
+
+          client_max_body_size 25m;
+          proxy_http_version 1.1;
+        '';
       };
     }
   ];

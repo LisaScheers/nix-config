@@ -34,6 +34,17 @@
       url = "github:sadjow/codex-cli-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixpkgs-authentik = {
+      url = "github:LisaScheers/nixpkgs/5105c5e9cf1a92c4888ede41a2e8deb733282feb";
+    };
+    stock-keeper = {
+      url = "github:LisaScheers/stock-keeper/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    shop-empty-track = {
+      url = "github:LisaScheers/shop-empty-track/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Optional: Declarative tap management
     homebrew-core = {
@@ -66,6 +77,10 @@
         ./devshell.nix
         ./overlays.nix
         ./hosts/darwin/Lisas-private-MacBook-Pro/default.nix
+        ./modules/authentik
+        ./modules/forgejo-runner
+        ./modules/matrix
+        ./hosts/matrix.bylisa.dev
       ];
       systems = localConfig.supportedSystems;
       flake = {

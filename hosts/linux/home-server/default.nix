@@ -11,6 +11,8 @@
     ./modules/dns.nix
     ./modules/home-assistant.nix
     ./modules/monitoring.nix
+    ./modules/neo4j.nix
+    ./modules/onepassword-connect.nix
     ./modules/siem.nix
   ];
 
