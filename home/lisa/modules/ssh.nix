@@ -18,6 +18,13 @@
         IdentitiesOnly = true;
       };
 
+      "codeberg.org" = {
+        HostName = "codeberg.org";
+        User = "git";
+        IdentityFile = "~/.ssh/codeberg.pub";
+        IdentitiesOnly = true;
+      };
+
       "mail" = {
         HostName = "dns.scheers.tech";
         User = "lisa";
