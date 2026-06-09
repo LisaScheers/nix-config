@@ -16,7 +16,7 @@
   };
 
   sops.secrets.forgejo-runner-token = {
-    sopsFile = ../../secrets/forgejo-runner-token.env;
+    sopsFile = ../../../secrets/forgejo-runner-token.env;
     format = "dotenv";
     key = "";
   };

@@ -17,7 +17,7 @@
 
   sops.secrets = {
     "shop-empty-track-env" = {
-      sopsFile = ../../secrets/shop-empty-track.env;
+      sopsFile = ../../../secrets/shop-empty-track.env;
       owner = "shop-empty-track";
       group = "shop-empty-track";
       format = "dotenv";

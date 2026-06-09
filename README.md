@@ -10,8 +10,12 @@ This repository contains declarative macOS and NixOS host configurations managed
 | `hosts/darwin/Lisas-private-MacBook-Pro/default.nix` | Darwin host entrypoint | `darwinConfigurations.Lisas-private-MacBook-Pro` |
 | `hosts/linux/home-server/default.nix` | NixOS host entrypoint | `nixosConfigurations.home-server` |
 | `hosts/linux/home-server/disk.nix` | home-server disko layout for nixos-anywhere | Imported by `nixosConfigurations.home-server` |
+| `hosts/linux/matrix.bylisa.dev/default.nix` | Matrix NixOS host entrypoint | `nixosConfigurations.matrix.bylisa.dev` |
 | `home/lisa/mac-private.nix` | Lisa's macOS Home Manager module | `homeModules.lisa-macos` |
 | `modules/darwin/` | Shared nix-darwin modules | Imported by the Darwin host |
+| `modules/matrix/` | Shared Matrix service modules | Imported by the Matrix host |
+| `modules/authentik/` | Shared Authentik service module | Imported by the Matrix host |
+| `modules/forgejo-runner/` | Shared Forgejo runner service module | Imported by the Matrix host |
 | `apps/` | Thin workflow scripts for `nix run` apps | `apps.${system}.*` |
 | `secrets/secrets.yaml` | SOPS-encrypted secret data | Consumed by `sops-nix` at activation |
 
@@ -30,6 +34,7 @@ Host configurations are currently declared for:
 
 - `Lisas-private-MacBook-Pro` on `aarch64-darwin`
 - `home-server` on `x86_64-linux`
+- `matrix.bylisa.dev` on `x86_64-linux`
 
 `x86_64-darwin` is kept as transitional Intel Mac support. Nixpkgs 26.05 warns that it is the last release supporting that platform, so remove it from `config.nix` when Intel Mac outputs are no longer needed.
 

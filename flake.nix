@@ -80,7 +80,7 @@
         ./modules/authentik
         ./modules/forgejo-runner
         ./modules/matrix
-        ./hosts/matrix.bylisa.dev
+        ./hosts/linux/matrix.bylisa.dev
       ];
       systems = localConfig.supportedSystems;
       flake = {

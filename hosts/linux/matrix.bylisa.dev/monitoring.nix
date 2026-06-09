@@ -126,7 +126,7 @@ in {
   environment.etc."alloy/config.alloy".source = alloyConfig;
 
   sops.secrets."monitoring-otlp-env" = {
-    sopsFile = ../../secrets/monitoring-otlp.env;
+    sopsFile = ../../../secrets/monitoring-otlp.env;
     owner = "root";
     group = "root";
     mode = "0400";

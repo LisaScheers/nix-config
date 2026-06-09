@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  stockKeeperPatch = ../../patches/stock-keeper-prisma-postgres.patch;
+  stockKeeperPatch = ../../../patches/stock-keeper-prisma-postgres.patch;
   stockKeeperSource = pkgs.applyPatches {
     name = "stock-keeper-source-prisma-pg";
     src = inputs.stock-keeper.outPath;
@@ -117,7 +117,7 @@ in {
 
   sops.secrets = {
     "stock-keeper-env" = {
-      sopsFile = ../../secrets/stock-keeper.env;
+      sopsFile = ../../../secrets/stock-keeper.env;
       owner = "stock-keeper";
       group = "stock-keeper";
       format = "dotenv";

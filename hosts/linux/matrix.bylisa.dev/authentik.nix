@@ -67,14 +67,14 @@ in {
   };
 
   sops.secrets."authentik-env" = {
-    sopsFile = ../../secrets/authentik.env;
+    sopsFile = ../../../secrets/authentik.env;
     owner = "root";
     group = "root";
     format = "dotenv";
   };
 
   sops.secrets."authentik-ldap-outpost-env" = {
-    sopsFile = ../../secrets/authentik-ldap-outpost.env;
+    sopsFile = ../../../secrets/authentik-ldap-outpost.env;
     owner = "root";
     group = "root";
     format = "dotenv";

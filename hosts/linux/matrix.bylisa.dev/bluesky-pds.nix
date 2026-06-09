@@ -14,7 +14,7 @@
   };
   sops.secrets = {
     "bluesky-pds-env" = {
-      sopsFile = ../../secrets/bsky.env;
+      sopsFile = ../../../secrets/bsky.env;
       owner = "root";
       group = "root";
       format = "dotenv";
@@ -54,7 +54,7 @@
   };
   sops.secrets = {
     "cf-api-token" = {
-      sopsFile = ../../secrets/cf-token.env;
+      sopsFile = ../../../secrets/cf-token.env;
       owner = config.users.users.acme.name;
       group = config.users.groups.acme.name;
       format = "dotenv";
