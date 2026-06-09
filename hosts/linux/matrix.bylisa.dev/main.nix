@@ -10,7 +10,6 @@
     ./bluesky-pds.nix
     ./minecraft.nix
     ./stock-keeper.nix
-    ./shop-empty-track.nix
     ./forgejo-runner.nix
     ./authentik.nix
     ./monitoring.nix
@@ -55,6 +54,7 @@
   users.users = {
     root.hashedPassword = "!"; # Disable root login
     lisa = {
+      hashedPassword = "!";
       isNormalUser = true;
       description = "Lisa user";
       extraGroups = ["wheel"];
