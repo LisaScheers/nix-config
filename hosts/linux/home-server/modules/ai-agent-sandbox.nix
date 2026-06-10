@@ -215,6 +215,7 @@ in {
 
   systemd.services.podman-ai-agent-sandbox.unitConfig.RequiresMountsFor = [
     "/var/lib/${serviceUser}"
-    projectsRoot
   ];
+
+  systemd.services.podman-ai-agent-sandbox.unitConfig.ConditionPathIsMountPoint = "/srv/disks/kingston-ssd";
 }

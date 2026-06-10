@@ -238,7 +238,7 @@ in {
         description = "Run nix-auto-sync-update every five minutes";
         wantedBy = ["timers.target"];
         timerConfig = {
-          OnBootSec = "2m";
+          OnActiveSec = "${toString cfg.intervalSeconds}s";
           OnUnitActiveSec = "${toString cfg.intervalSeconds}s";
           AccuracySec = "30s";
           Unit = "nix-auto-sync-update.service";
@@ -249,7 +249,7 @@ in {
       launchd.daemons.nix-auto-sync-update.serviceConfig = {
         Label = "tech.scheers.nix-auto-sync-update";
         ProgramArguments = [(lib.getExe script)];
-        RunAtLoad = true;
+        RunAtLoad = false;
         StartInterval = cfg.intervalSeconds;
         StandardOutPath = "/var/log/nix-auto-sync-update.log";
         StandardErrorPath = "/var/log/nix-auto-sync-update.log";
