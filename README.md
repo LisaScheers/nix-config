@@ -183,6 +183,8 @@ AUTO_SYNC_SMTP_FROM=nix-watchdog@scheers.tech
 
 `AUTO_SYNC_GIT_AUTH_HEADER` can be used instead of `AUTO_SYNC_GIT_USERNAME` and `AUTO_SYNC_GIT_TOKEN` when the Git server expects an HTTP header. Failures send a watchdog email to `lisa@scheers.tech` once SMTP settings are present.
 
+When a pulled update changes boot artifacts on NixOS, or a reboot marker is present on macOS, the job sends a reboot-required email and schedules a reboot for 12 hours after the update. On NixOS this is a transient `nix-auto-sync-update-reboot` systemd timer; on macOS it uses `shutdown -r +720`.
+
 ## FlakeHub Authentication
 
 FlakeHub authentication is machine-local and must not be committed. On this Mac, Determinate Nix manages authentication through `determinate-nixd`:

@@ -12,7 +12,38 @@
     if hasLaunchd
     then ["/run/current-system/sw/bin/darwin-rebuild" "switch"]
     else ["/run/current-system/sw/bin/nixos-rebuild" "switch"];
+  defaultScheduleRebootCommand =
+    if hasLaunchd
+    then [
+      "/sbin/shutdown"
+      "-r"
+      "+${toString (cfg.rebootDelaySeconds / 60)}"
+      "nix-auto-sync-update scheduled reboot after applying updates"
+    ]
+    else [
+      "/run/current-system/sw/bin/systemd-run"
+      "--unit=nix-auto-sync-update-reboot"
+      "--description=Reboot after nix-auto-sync-update"
+      "--on-active=${toString cfg.rebootDelaySeconds}s"
+      "--timer-property=AccuracySec=1min"
+      "--collect"
+      "/run/current-system/sw/bin/systemctl"
+      "reboot"
+    ];
   rebuildCommand = lib.concatMapStringsSep " " lib.escapeShellArg cfg.rebuildCommand;
+  rebootRequiredCommand =
+    lib.optionalString (cfg.rebootRequiredCommand != null)
+    (lib.concatMapStringsSep " " lib.escapeShellArg cfg.rebootRequiredCommand);
+  scheduleRebootCommand = lib.concatMapStringsSep " " lib.escapeShellArg (
+    if cfg.scheduleRebootCommand != null
+    then cfg.scheduleRebootCommand
+    else defaultScheduleRebootCommand
+  );
+  hasCustomScheduleRebootCommand = cfg.scheduleRebootCommand != null;
+  platform =
+    if hasLaunchd
+    then "darwin"
+    else "linux";
   script = pkgs.writeShellApplication {
     name = "nix-auto-sync-update";
     runtimeInputs = [
@@ -30,6 +61,10 @@
       env_file="''${AUTO_SYNC_ENV_FILE:-${lib.escapeShellArg cfg.environmentFile}}"
       lock_dir=${lib.escapeShellArg cfg.lockDirectory}
       email_to=${lib.escapeShellArg cfg.emailTo}
+      reboot_delay_seconds=${toString cfg.rebootDelaySeconds}
+      platform=${lib.escapeShellArg platform}
+      custom_reboot_required=${lib.escapeShellArg (lib.boolToString (cfg.rebootRequiredCommand != null))}
+      custom_schedule_reboot=${lib.escapeShellArg (lib.boolToString hasCustomScheduleRebootCommand)}
       log_file="$(mktemp)"
       lock_acquired=0
 
@@ -86,11 +121,10 @@
         fi
       }
 
-      send_failure_mail() {
-        status="$1"
-
+      send_mail() {
+        subject="$1"
         if [ -z "''${AUTO_SYNC_SMTP_URL:-}" ]; then
-          echo "AUTO_SYNC_SMTP_URL is not set; cannot send watchdog email." >&2
+          echo "AUTO_SYNC_SMTP_URL is not set; cannot send email: $subject" >&2
           return 0
         fi
 
@@ -101,14 +135,10 @@
         {
           printf 'From: %s\r\n' "$mail_from"
           printf 'To: %s\r\n' "$mail_to"
-          printf 'Subject: [watchdog] nix auto-sync-update failed on %s\r\n' "$flake_host"
+          printf 'Subject: %s\r\n' "$subject"
           printf 'Content-Type: text/plain; charset=UTF-8\r\n'
           printf '\r\n'
-          printf 'nix-auto-sync-update failed on %s with exit status %s.\n\n' "$flake_host" "$status"
-          printf 'Repository: %s\n' "$repo_path"
-          printf 'Branch: %s\n\n' "$branch"
-          printf 'Captured output:\n'
-          cat "$log_file"
+          cat
         } > "$mail_file"
 
         curl_args=(
@@ -130,13 +160,105 @@
         fi
 
         if ! curl "''${curl_args[@]}"; then
-          echo "Failed to send watchdog email." >&2
+          echo "Failed to send email: $subject" >&2
         fi
+      }
+
+      send_failure_mail() {
+        status="$1"
+
+        {
+          printf 'nix-auto-sync-update failed on %s with exit status %s.\n\n' "$flake_host" "$status"
+          printf 'Repository: %s\n' "$repo_path"
+          printf 'Branch: %s\n\n' "$branch"
+          printf 'Captured output:\n'
+          cat "$log_file"
+        } | send_mail "[watchdog] nix auto-sync-update failed on $flake_host"
+      }
+
+      reboot_required() {
+        if [ "''${AUTO_SYNC_FORCE_REBOOT_REQUIRED:-0}" = "1" ]; then
+          return 0
+        fi
+
+        if [ "$custom_reboot_required" = "true" ]; then
+          reboot_required_cmd=(${rebootRequiredCommand})
+          "''${reboot_required_cmd[@]}"
+          return "$?"
+        fi
+
+        if [ "$platform" = "linux" ]; then
+          if [ ! -e /run/current-system ] || [ ! -e /run/booted-system ]; then
+            return 1
+          fi
+
+          for artifact in kernel initrd kernel-modules; do
+            if [ ! -e "/run/current-system/$artifact" ]; then
+              continue
+            fi
+
+            current_artifact="$(readlink -f "/run/current-system/$artifact")"
+            booted_artifact="$(readlink -f "/run/booted-system/$artifact" 2>/dev/null || true)"
+            if [ "$current_artifact" != "$booted_artifact" ]; then
+              echo "Reboot required: $artifact changed from $booted_artifact to $current_artifact."
+              return 0
+            fi
+          done
+
+          return 1
+        fi
+
+        if [ "$platform" = "darwin" ]; then
+          if [ -e /var/run/reboot-required ] || [ -e /tmp/restart-required ]; then
+            echo "Reboot required: reboot marker file exists."
+            return 0
+          fi
+
+          return 1
+        fi
+
+        return 1
+      }
+
+      schedule_reboot() {
+        if [ "$platform" = "linux" ] && [ "$custom_schedule_reboot" != "true" ]; then
+          /run/current-system/sw/bin/systemctl stop nix-auto-sync-update-reboot.timer nix-auto-sync-update-reboot.service 2>/dev/null || true
+          /run/current-system/sw/bin/systemctl reset-failed nix-auto-sync-update-reboot.timer nix-auto-sync-update-reboot.service 2>/dev/null || true
+        fi
+
+        if [ "$platform" = "darwin" ] && [ "$custom_schedule_reboot" != "true" ]; then
+          if [ -f /var/run/shutdown.pid ] && kill -0 "$(< /var/run/shutdown.pid)" 2>/dev/null; then
+            echo "A shutdown is already scheduled; leaving it in place."
+            return 0
+          fi
+        fi
+
+        schedule_reboot_cmd=(${scheduleRebootCommand})
+        "''${schedule_reboot_cmd[@]}"
+      }
+
+      handle_required_reboot() {
+        if ! reboot_required; then
+          return 0
+        fi
+
+        schedule_output="$(schedule_reboot 2>&1)"
+        printf '%s\n' "$schedule_output"
+
+        {
+          printf 'nix-auto-sync-update applied updates on %s and detected that a reboot is required.\n\n' "$flake_host"
+          printf 'Repository: %s\n' "$repo_path"
+          printf 'Branch: %s\n' "$branch"
+          printf 'Reboot delay: %s seconds\n\n' "$reboot_delay_seconds"
+          printf 'The reboot has been scheduled for 12 hours after the update.\n\n'
+          printf 'Scheduler output:\n%s\n' "$schedule_output"
+        } | send_mail "[watchdog] reboot required on $flake_host"
       }
 
       run_update() {
         load_env
         configure_git_auth
+        updated=0
 
         if [ ! -d "$repo_path/.git" ]; then
           if [ -z "''${AUTO_SYNC_GIT_REPOSITORY_URL:-}" ]; then
@@ -146,9 +268,11 @@
 
           mkdir -p "$(dirname "$repo_path")"
           git "''${git_args[@]}" clone --branch "$branch" "$AUTO_SYNC_GIT_REPOSITORY_URL" "$repo_path"
+          updated=1
         fi
 
         cd "$repo_path"
+        before_rev="$(git rev-parse HEAD 2>/dev/null || true)"
         git "''${git_args[@]}" fetch --prune origin "$branch"
         if git show-ref --verify --quiet "refs/heads/$branch"; then
           git "''${git_args[@]}" checkout "$branch"
@@ -156,9 +280,17 @@
           git "''${git_args[@]}" checkout --track -b "$branch" "origin/$branch"
         fi
         git "''${git_args[@]}" merge --ff-only "origin/$branch"
+        after_rev="$(git rev-parse HEAD)"
+        if [ "$before_rev" != "$after_rev" ]; then
+          updated=1
+        fi
 
         rebuild_cmd=(${rebuildCommand})
         "''${rebuild_cmd[@]}" --flake "path:$repo_path#$flake_host"
+
+        if [ "$updated" -eq 1 ]; then
+          handle_required_reboot
+        fi
       }
 
       if run_update > >(tee -a "$log_file") 2>&1; then
@@ -209,6 +341,12 @@ in {
       description = "Number of seconds between sync attempts.";
     };
 
+    rebootDelaySeconds = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 43200;
+      description = "Number of seconds to wait before rebooting after an update that requires a reboot.";
+    };
+
     lockDirectory = lib.mkOption {
       type = lib.types.str;
       default = "/var/run/nix-auto-sync-update.lock";
@@ -219,6 +357,18 @@ in {
       type = lib.types.listOf lib.types.str;
       default = defaultRebuildCommand;
       description = "Command used to switch the host after pulling the repository.";
+    };
+
+    rebootRequiredCommand = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      default = null;
+      description = "Optional command that exits 0 when a reboot should be scheduled.";
+    };
+
+    scheduleRebootCommand = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      default = null;
+      description = "Optional command used to schedule the delayed reboot.";
     };
   };
 
