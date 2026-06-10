@@ -31,6 +31,7 @@
       lock_dir=${lib.escapeShellArg cfg.lockDirectory}
       email_to=${lib.escapeShellArg cfg.emailTo}
       log_file="$(mktemp)"
+      lock_acquired=0
 
       # shellcheck disable=SC2329
       cleanup() {
@@ -41,7 +42,9 @@
         if [ -n "''${mail_file:-}" ]; then
           rm -f "$mail_file"
         fi
-        rmdir "$lock_dir" 2>/dev/null || true
+        if [ "$lock_acquired" -eq 1 ]; then
+          rmdir "$lock_dir" 2>/dev/null || true
+        fi
       }
       trap cleanup EXIT
 
@@ -49,6 +52,7 @@
         echo "Another nix-auto-sync-update run is active; exiting."
         exit 0
       fi
+      lock_acquired=1
 
       load_env() {
         if [ -f "$env_file" ]; then
