@@ -376,6 +376,8 @@ in {
     lib.optionalAttrs hasSystemd {
       systemd.services.nix-auto-sync-update = {
         description = "Pull this Nix repository and apply host changes";
+        restartIfChanged = false;
+        stopIfChanged = false;
         wants = ["network-online.target"];
         after = ["network-online.target"];
         serviceConfig = {
