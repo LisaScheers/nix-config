@@ -15,6 +15,8 @@
     "grafana.local.bylisa.dev."
     "ha.local.bylisa.dev."
     "neo4j.local.bylisa.dev."
+    "second-life-cache.local.bylisa.dev."
+    "sl-cache.local.bylisa.dev."
     "wazuh.local.bylisa.dev."
   ];
   localRecords =

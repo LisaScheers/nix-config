@@ -69,6 +69,14 @@
         IdentitiesOnly = true;
       };
 
+      "ai-agent-sandbox" = {
+        HostName = "192.168.111.2";
+        User = "root";
+        Port = 2223;
+        IdentityFile = "~/.ssh/ai-agent-sandbox.pub";
+        IdentitiesOnly = true;
+      };
+
       "router" = {
         HostName = "192.168.1.1";
         User = "root";

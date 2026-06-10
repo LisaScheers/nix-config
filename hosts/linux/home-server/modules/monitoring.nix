@@ -19,6 +19,10 @@
   nginxExporterPort = 9113;
   unboundExporterAddress = "127.0.0.1";
   unboundExporterPort = 9167;
+  squidExporterAddress = "127.0.0.1";
+  squidExporterPort = 9301;
+  squidAddress = "192.168.111.2";
+  squidPort = 3128;
   mimirAddress = "127.0.0.1";
   mimirPort = 9009;
   tempoAddress = "127.0.0.1";
@@ -179,11 +183,13 @@
       (statPanel 4 "Grafana up" 12 0 4 4 [(prometheusTarget "A" ''up{job="grafana"}'' "grafana")] "none")
       (statPanel 10 "Unbound up" 16 0 4 4 [(prometheusTarget "A" ''up{job="unbound"}'' "unbound")] "none")
       (statPanel 11 "Neo4j up" 20 0 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="neo4j.service",state="active"}'' "neo4j")] "none")
+      (statPanel 12 "Squid up" 0 20 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="squid.service",state="active"}'' "squid")] "none")
+      (statPanel 13 "Dante up" 4 20 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="dante.service",state="active"}'' "dante")] "none")
       (timeseriesPanel 5 "CPU usage" 0 4 12 8 [(prometheusTarget "A" ''100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'' "CPU")] "percent")
       (timeseriesPanel 6 "Memory usage" 12 4 12 8 [(prometheusTarget "A" ''100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)'' "memory")] "percent")
       (timeseriesPanel 7 "Filesystem usage" 0 12 12 8 [(prometheusTarget "A" ''100 * (1 - node_filesystem_avail_bytes{mountpoint=~"/|/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"} / node_filesystem_size_bytes{mountpoint=~"/|/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"})'' "{{mountpoint}}")] "percent")
       (timeseriesPanel 8 "Load average" 12 12 12 8 [(prometheusTarget "A" ''node_load1'' "1m") (prometheusTarget "B" ''node_load5'' "5m") (prometheusTarget "C" ''node_load15'' "15m")] "none")
-      (logsPanel 9 "System logs" 0 20 24 8 ''{unit=~"alloy.service|grafana.service|loki.service|mimir.service|neo4j.service|nginx.service|podman-home-assistant.service|prometheus-nginx-exporter.service|prometheus-unbound-exporter.service|pyroscope.service|tempo.service|unbound.service"}'')
+      (logsPanel 9 "System logs" 0 24 24 8 ''{unit=~"alloy.service|dante.service|grafana.service|loki.service|mimir.service|neo4j.service|nginx.service|podman-home-assistant.service|prometheus-nginx-exporter.service|prometheus-squid-exporter.service|prometheus-unbound-exporter.service|pyroscope.service|squid.service|tempo.service|unbound.service"}'')
     ];
 
     "observability-stack" = dashboard "observability-stack" "Observability Stack" ["grafana" "lgtm"] [
@@ -232,6 +238,19 @@
       (timeseriesPanel 8 "Query types" 12 12 12 8 [(prometheusTarget "A" ''sum by (type) (rate(unbound_query_types_total{job="unbound"}[5m]))'' "{{type}}")] "qps")
       (timeseriesPanel 9 "P95 response time" 0 20 12 8 [(prometheusTarget "A" ''histogram_quantile(0.95, sum(rate(unbound_response_time_seconds_bucket{job="unbound"}[5m])) by (le))'' "p95")] "s")
       (logsPanel 10 "Unbound logs" 12 20 12 8 ''{unit=~"unbound.service|prometheus-unbound-exporter.service"}'')
+    ];
+
+    "second-life-proxy-cache" = dashboard "second-life-proxy-cache" "Second Life Proxy Cache" ["second-life" "squid" "dante"] [
+      (statPanel 1 "Squid exporter up" 0 0 6 4 [(prometheusTarget "A" ''up{job="squid"}'' "exporter")] "none")
+      (statPanel 2 "Squid unit up" 6 0 6 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="squid.service",state="active"}'' "squid")] "none")
+      (statPanel 3 "Dante unit up" 12 0 6 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="dante.service",state="active"}'' "dante")] "none")
+      (statPanel 4 "Cache hit ratio" 18 0 6 4 [(prometheusTarget "A" ''squid_info_Hits_as_pct_of_all_requests_5min'' "hits")] "percent")
+      (timeseriesPanel 5 "HTTP requests" 0 4 12 8 [(prometheusTarget "A" ''rate(squid_client_http_requests_total[5m])'' "requests") (prometheusTarget "B" ''rate(squid_client_http_hits_total[5m])'' "hits") (prometheusTarget "C" ''rate(squid_client_http_errors_total[5m])'' "errors")] "rps")
+      (timeseriesPanel 6 "Bandwidth" 12 4 12 8 [(prometheusTarget "A" ''rate(squid_client_http_kbytes_in_kbytes_total[5m]) * 1024'' "in") (prometheusTarget "B" ''rate(squid_client_http_kbytes_out_kbytes_total[5m]) * 1024'' "out") (prometheusTarget "C" ''rate(squid_client_http_hit_kbytes_out_bytes_total[5m])'' "hit out")] "Bps")
+      (timeseriesPanel 7 "Cache storage" 0 12 12 8 [(prometheusTarget "A" ''squid_info_Storage_Swap_size * 1024'' "disk") (prometheusTarget "B" ''squid_info_Storage_Mem_size * 1024'' "memory")] "bytes")
+      (timeseriesPanel 8 "Service times p50" 12 12 12 8 [(prometheusTarget "A" ''squid_HTTP_Requests_All_50'' "http") (prometheusTarget "B" ''squid_Cache_Hits_50'' "hits") (prometheusTarget "C" ''squid_Cache_Misses_50'' "misses") (prometheusTarget "D" ''squid_DNS_Lookups_50'' "dns")] "s")
+      (timeseriesPanel 9 "Proxy unit state" 0 20 24 8 [(prometheusTarget "A" ''node_systemd_unit_state{name=~"squid.service|dante.service|prometheus-squid-exporter.service",state=~"active|failed"}'' "{{name}} {{state}}")] "none")
+      (logsPanel 10 "Proxy logs" 0 28 24 8 ''{unit=~"squid.service|dante.service|prometheus-squid-exporter.service"}'')
     ];
 
     "home-assistant" = dashboard "home-assistant" "Home Assistant" ["home-assistant" "iot"] [
@@ -337,6 +356,14 @@
     prometheus.scrape "unbound" {
       targets = [
         {"__address__" = "${unboundExporterAddress}:${toString unboundExporterPort}", "job" = "unbound", "instance" = constants.hostname},
+      ]
+      forward_to      = [prometheus.remote_write.mimir.receiver]
+      scrape_interval = "15s"
+    }
+
+    prometheus.scrape "squid" {
+      targets = [
+        {"__address__" = "${squidExporterAddress}:${toString squidExporterPort}", "job" = "squid", "instance" = constants.hostname},
       ]
       forward_to      = [prometheus.remote_write.mimir.receiver]
       scrape_interval = "15s"
@@ -823,6 +850,24 @@ in {
     listenAddress = nginxExporterAddress;
     port = nginxExporterPort;
     scrapeUri = "http://127.0.0.1/nginx_status";
+  };
+
+  systemd.services.prometheus-squid-exporter = {
+    description = "Prometheus exporter for Squid caching proxy";
+    wantedBy = ["multi-user.target"];
+    after = ["squid.service"];
+    requires = ["squid.service"];
+    serviceConfig = {
+      User = "squid";
+      Group = "squid";
+      ExecStart = "${pkgs.prometheus-squid-exporter}/bin/squid-exporter -listen ${squidExporterAddress}:${toString squidExporterPort} -squid-hostname ${squidAddress} -squid-port ${toString squidPort} -squid-pidfile /run/squid.pid";
+      Restart = "always";
+      RestartSec = "5s";
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      NoNewPrivileges = true;
+    };
   };
 
   services.nginx.virtualHosts.${grafanaDomain} = lib.mkMerge [

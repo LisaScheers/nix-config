@@ -7,12 +7,14 @@
     ./disk.nix
     ./hardware-configuration.nix
     ./modules/acme.nix
+    ./modules/ai-agent-sandbox.nix
     ./modules/base
     ./modules/dns.nix
     ./modules/home-assistant.nix
     ./modules/monitoring.nix
     ./modules/neo4j.nix
     ./modules/onepassword-connect.nix
+    ./modules/second-life-cache.nix
     ./modules/siem.nix
   ];
 
