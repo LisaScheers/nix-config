@@ -10,7 +10,7 @@
     ./disko-config.nix
     ./bluesky-pds.nix
     ./minecraft.nix
-    ./stock-keeper.nix
+    #./stock-keeper.nix
     ./forgejo-runner.nix
     ./authentik.nix
     ./monitoring.nix
