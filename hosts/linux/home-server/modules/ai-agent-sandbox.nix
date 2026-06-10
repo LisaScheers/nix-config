@@ -11,6 +11,7 @@
   sshPort = 2223;
   projectsRoot = "/srv/disks/kingston-ssd/projects";
   hostKeysRoot = "/var/lib/${serviceUser}/ssh";
+  codexRoot = "/var/lib/${serviceUser}/codex";
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFTAh/6Ikl8gWH9KFg5Ns6JLJg+Qw7laL3fTFVZiNQ7i";
 
   sandboxPackages = with pkgs; [
@@ -191,6 +192,7 @@ in {
   systemd.tmpfiles.rules = [
     "d /var/lib/${serviceUser} 0700 ${serviceUser} ${serviceUser} -"
     "d ${hostKeysRoot} 0700 ${serviceUser} ${serviceUser} -"
+    "d ${codexRoot} 0700 ${serviceUser} ${serviceUser} -"
     "d ${projectsRoot} 0750 ${serviceUser} ${serviceUser} -"
   ];
 
@@ -218,6 +220,7 @@ in {
         ];
         volumes = [
           "${hostKeysRoot}:/etc/ssh"
+          "${codexRoot}:/root/.codex"
           "${projectsRoot}:/projects"
         ];
         workdir = "/projects";
@@ -240,6 +243,7 @@ in {
   systemd.services.podman-ai-agent-sandbox.unitConfig.RequiresMountsFor = [
     "/var/lib/${serviceUser}"
     hostKeysRoot
+    codexRoot
     "/srv/disks/kingston-ssd"
     projectsRoot
   ];
