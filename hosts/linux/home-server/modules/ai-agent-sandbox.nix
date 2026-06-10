@@ -30,6 +30,7 @@
     less
     nano
     nix
+    openssl
     openssh
     procps
     python3
@@ -77,6 +78,10 @@
     ClientAliveInterval 300
     ClientAliveCountMax 2
     LogLevel VERBOSE
+    SetEnv SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+    SetEnv NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+    SetEnv CURL_CA_BUNDLE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+    SetEnv GIT_SSL_CAINFO=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
     Subsystem sftp internal-sftp
   '';
 
@@ -148,6 +153,10 @@
       experimental-features = nix-command flakes
       sandbox = false
       EOF
+
+      mkdir -p etc/ssl/certs
+      ln -s ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt etc/ssl/certs/ca-certificates.crt
+      ln -s ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt etc/ssl/cert.pem
 
       chmod 0600 etc/shadow
       chmod 1777 tmp var/tmp
