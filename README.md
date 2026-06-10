@@ -156,6 +156,33 @@ just sops
 
 The age private key path is configured in `config.nix` as `sopsAgeKeyFile`. Do not put private keys, tokens, or decrypted secret files in `flake.nix`, shell hooks, derivation arguments, or tracked source files.
 
+## Auto Sync Update
+
+Each declared host runs `services.autoSyncUpdate` every five minutes. The job fast-forwards the local checkout, then switches the matching flake host.
+
+The default checkout path is `/etc/nix-darwin` on NixOS and `config.nix`'s `darwinFlakePath` on macOS. If the checkout does not exist yet, the job can clone it when `AUTO_SYNC_GIT_REPOSITORY_URL` is present.
+
+Credentials are managed with `sops-nix` in `secrets/auto-sync-update.env`. Edit the encrypted file with:
+
+```sh
+just sops secrets/auto-sync-update.env
+```
+
+The decrypted runtime file is mounted at `/run/secrets/auto-sync-update-env` on each host and should contain:
+
+```sh
+AUTO_SYNC_GIT_REPOSITORY_URL=https://github.com/LisaScheers/nix-darwin.git
+AUTO_SYNC_GIT_USERNAME=x-access-token
+AUTO_SYNC_GIT_TOKEN=replace-me
+
+AUTO_SYNC_SMTP_URL=smtps://smtp.example.com:465
+AUTO_SYNC_SMTP_USERNAME=replace-me
+AUTO_SYNC_SMTP_PASSWORD=replace-me
+AUTO_SYNC_SMTP_FROM=nix-watchdog@scheers.tech
+```
+
+`AUTO_SYNC_GIT_AUTH_HEADER` can be used instead of `AUTO_SYNC_GIT_USERNAME` and `AUTO_SYNC_GIT_TOKEN` when the Git server expects an HTTP header. Failures send a watchdog email to `lisa@scheers.tech` once SMTP settings are present.
+
 ## FlakeHub Authentication
 
 FlakeHub authentication is machine-local and must not be committed. On this Mac, Determinate Nix manages authentication through `determinate-nixd`:

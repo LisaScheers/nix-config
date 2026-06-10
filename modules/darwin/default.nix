@@ -1,5 +1,6 @@
 {
   imports = [
+    ../auto-sync-update.nix
     ./home-manager.nix
     ./homebrew.nix
     ./launchd.nix

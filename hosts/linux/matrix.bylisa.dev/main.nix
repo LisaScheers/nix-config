@@ -5,6 +5,7 @@
   ...
 }: {
   imports = [
+    ../../../modules/auto-sync-update.nix
     ./hardware.nix
     ./disko-config.nix
     ./bluesky-pds.nix
@@ -75,6 +76,20 @@
   security.acme.defaults.email = "lisa@scheers.tech";
 
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [22];
+
+  services.autoSyncUpdate = {
+    enable = true;
+    flakeHost = "matrix.bylisa.dev";
+    environmentFile = config.sops.secrets."auto-sync-update-env".path;
+  };
+
+  sops.secrets."auto-sync-update-env" = {
+    sopsFile = ../../../secrets/auto-sync-update.env;
+    format = "dotenv";
+    owner = "root";
+    group = "root";
+    mode = "0400";
+  };
 
   system.stateVersion = "25.05";
 }

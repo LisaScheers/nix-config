@@ -4,6 +4,12 @@ keys:
   - &local_machine age1t0up4r7qszg9c296864a626hzt0nepkrgwfywhlcsh3aapyyqcvqzxe6m0
 
 creation_rules:
+  - path_regex: secrets/auto-sync-update\.env$
+    key_groups:
+      - age:
+          - *admin_lisa
+          - *server_root
+          - *local_machine
   - path_regex: secrets/.*\.yaml$
     encrypted_regex: ^(data|stringData|sops|age_keys)$
     key_groups:
