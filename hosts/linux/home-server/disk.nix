@@ -56,7 +56,7 @@ in {
         };
       };
     };
-    "xcp-ng-nvme" = dataDisk localConfig.nixosDiskDevices.xcpNgNvme "/srv/disks/xcp-ng-nvme";
+    "second-life-cache-nvme" = dataDisk localConfig.nixosDiskDevices.secondLifeCacheNvme "/srv/disks/second-life-cache-nvme";
     "kingston-ssd" = dataDisk localConfig.nixosDiskDevices.kingstonSsd "/srv/disks/kingston-ssd";
     "western-digital-hdd" = dataDisk localConfig.nixosDiskDevices.westernDigitalHdd "/srv/disks/western-digital-hdd";
   };

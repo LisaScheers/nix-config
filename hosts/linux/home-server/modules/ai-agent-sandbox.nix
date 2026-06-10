@@ -7,9 +7,10 @@
   imageName = "localhost/${containerName}";
   imageTag = "latest";
   serviceUser = "ai-agent-sandbox";
-  serviceUid = 989;
+  serviceUid = 977;
   sshPort = 2223;
   projectsRoot = "/srv/disks/kingston-ssd/projects";
+  hostKeysRoot = "/var/lib/${serviceUser}/ssh";
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFTAh/6Ikl8gWH9KFg5Ns6JLJg+Qw7laL3fTFVZiNQ7i";
 
   sandboxPackages = with pkgs; [
@@ -24,6 +25,7 @@
     gnugrep
     gnused
     gzip
+    inetutils
     jq
     less
     nano
@@ -36,6 +38,7 @@
     shadow
     sudo
     gnutar
+    util-linux
     vim
     wget
     which
@@ -98,7 +101,7 @@
       fi
 
       cd /projects
-      exec sshd -D -e -f ${sshdConfig}
+      exec ${pkgs.openssh}/bin/sshd -D -e -f ${sshdConfig}
     '';
   };
 
@@ -111,17 +114,20 @@
 
       cat > etc/passwd <<'EOF'
       root:x:0:0:root:/root:${pkgs.bashInteractive}/bin/bash
+      sshd:x:74:74:Privilege-separated SSH:/var/empty:${pkgs.shadow}/bin/nologin
       nobody:x:65534:65534:nobody:/var/empty:${pkgs.shadow}/bin/nologin
       EOF
 
       cat > etc/group <<'EOF'
       root:x:0:
+      sshd:x:74:
       nixbld:x:30000:
       nogroup:x:65534:
       EOF
 
       cat > etc/shadow <<'EOF'
       root:*:1::::::
+      sshd:*:1::::::
       nobody:*:1::::::
       EOF
 
@@ -174,7 +180,14 @@ in {
 
   systemd.tmpfiles.rules = [
     "d /var/lib/${serviceUser} 0700 ${serviceUser} ${serviceUser} -"
+    "d ${hostKeysRoot} 0700 ${serviceUser} ${serviceUser} -"
     "d ${projectsRoot} 0750 ${serviceUser} ${serviceUser} -"
+  ];
+
+  fileSystems."/srv/disks/kingston-ssd".options = lib.mkForce [
+    "defaults"
+    "nofail"
+    "x-systemd.device-timeout=5s"
   ];
 
   networking.firewall.allowedTCPPorts = [sshPort];
@@ -194,6 +207,7 @@ in {
           "192.168.111.2:${toString sshPort}:22/tcp"
         ];
         volumes = [
+          "${hostKeysRoot}:/etc/ssh"
           "${projectsRoot}:/projects"
         ];
         workdir = "/projects";
@@ -215,7 +229,8 @@ in {
 
   systemd.services.podman-ai-agent-sandbox.unitConfig.RequiresMountsFor = [
     "/var/lib/${serviceUser}"
+    hostKeysRoot
+    "/srv/disks/kingston-ssd"
+    projectsRoot
   ];
-
-  systemd.services.podman-ai-agent-sandbox.unitConfig.ConditionPathIsMountPoint = "/srv/disks/kingston-ssd";
 }

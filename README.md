@@ -118,7 +118,7 @@ The remaining scanned disks are declared as ext4 data disks. They use `noauto,no
 | Disk | Device | Mountpoint |
 | :--- | :--- | :--- |
 | Samsung NVMe 980 500 GB | `/dev/disk/by-id/nvme-eui.002538ba71b63d8a` | `/`, `/boot` |
-| Former XCP-ng NVMe | `/dev/disk/by-id/nvme-eui.00080d02000707ea` | `/srv/disks/xcp-ng-nvme` |
+| Second Life cache NVMe | `/dev/disk/by-id/nvme-eui.00080d02000707ea` | `/srv/disks/second-life-cache-nvme` |
 | Kingston SATA SSD 240 GB | `/dev/disk/by-id/ata-KINGSTON_SUV400S37240G_50026B726406FC2C` | `/srv/disks/kingston-ssd` |
 | WDC SATA HDD 2 TB | `/dev/disk/by-id/wwn-0x50014ee261c9005d` | `/srv/disks/western-digital-hdd` |
 
