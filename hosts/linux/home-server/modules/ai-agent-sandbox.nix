@@ -44,6 +44,7 @@
     which
     xz
     zstd
+    codex
   ];
 
   sandboxPath = lib.makeBinPath sandboxPackages;
