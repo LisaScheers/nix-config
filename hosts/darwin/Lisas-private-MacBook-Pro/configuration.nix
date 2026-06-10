@@ -18,19 +18,5 @@
   sops = {
     defaultSopsFile = ../../../secrets/secrets.yaml;
     age.keyFile = localConfig.sopsAgeKeyFile;
-    secrets."auto-sync-update-env" = {
-      sopsFile = ../../../secrets/auto-sync-update.env;
-      format = "dotenv";
-      owner = "root";
-      group = "wheel";
-      mode = "0400";
-    };
-  };
-
-  services.autoSyncUpdate = {
-    enable = true;
-    flakeHost = localConfig.darwinHost;
-    repositoryPath = localConfig.darwinFlakePath;
-    environmentFile = config.sops.secrets."auto-sync-update-env".path;
   };
 }
