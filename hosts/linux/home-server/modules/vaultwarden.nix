@@ -11,6 +11,8 @@
   backupDir = "${backupRoot}/backup";
   proxyErrorPage = import ./nginx-error-page.nix {inherit pkgs;};
 in {
+  sops.useSystemdActivation = true;
+
   sops.secrets = {
     "vaultwarden-env" = {
       sopsFile = ../../../../secrets/vaultwarden.env;
@@ -130,6 +132,14 @@ in {
 
   systemd.services = {
     backup-vaultwarden.unitConfig.RequiresMountsFor = backupRoot;
-    restic-backups-vaultwarden.unitConfig.RequiresMountsFor = backupRoot;
+    restic-backups-vaultwarden = {
+      after = ["sops-install-secrets.service"];
+      requires = ["sops-install-secrets.service"];
+      unitConfig.RequiresMountsFor = backupRoot;
+    };
+    vaultwarden = {
+      after = ["sops-install-secrets.service"];
+      requires = ["sops-install-secrets.service"];
+    };
   };
 }
