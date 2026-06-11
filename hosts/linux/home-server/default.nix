@@ -18,6 +18,7 @@
     ./modules/onepassword-connect.nix
     ./modules/second-life-cache.nix
     ./modules/siem.nix
+    ./modules/vaultwarden.nix
   ];
 
   services.autoSyncUpdate = {

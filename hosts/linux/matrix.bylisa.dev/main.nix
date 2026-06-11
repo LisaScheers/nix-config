@@ -14,6 +14,7 @@
     ./forgejo-runner.nix
     ./authentik.nix
     ./monitoring.nix
+    ./vaultwarden-backup.nix
   ];
 
   networking.domain = "bylisa.dev";
