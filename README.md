@@ -187,7 +187,7 @@ When a pulled update changes boot artifacts on NixOS, or a reboot marker is pres
 
 ## Vaultwarden
 
-The `home-server` host runs Vaultwarden at `https://vault.bylisa.dev`. Open signups are disabled; use the generated admin token in `secrets/vaultwarden.env` to create the initial account or invite users.
+The `home-server` host runs Vaultwarden at `https://vault.bylisa.dev`. Open signups are disabled; Vaultwarden loads an Argon2-hashed admin token from `secrets/vaultwarden.env`. The plaintext admin token is kept separately in `secrets/vaultwarden-admin-token.env` for login to the admin panel.
 
 Vaultwarden uses SQLite and the NixOS module's built-in `backup-vaultwarden.service` to prepare a consistent local backup under `/srv/disks/western-digital-hdd/vaultwarden/backup`. `restic-backups-vaultwarden.service` then sends that prepared backup over Tailscale SFTP to the `vaultwarden-backup` user on `matrix.bylisa.dev`.
 
