@@ -37,7 +37,7 @@ in {
       GOTIFY_SERVER_LISTENADDR = gotifyAddress;
       GOTIFY_SERVER_PORT = gotifyPort;
       GOTIFY_SERVER_SSL_ENABLED = "false";
-      GOTIFY_SERVER_STREAM_ALLOWEDORIGINS = "https://${domain}";
+      GOTIFY_SERVER_STREAM_ALLOWEDORIGINS = ''["https://${domain}"]'';
       GOTIFY_UPLOADEDIMAGESDIR = "data/images";
     };
     environmentFiles = [config.sops.secrets."gotify-env".path];

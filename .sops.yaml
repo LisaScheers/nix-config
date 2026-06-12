@@ -27,3 +27,4 @@ creation_rules:
       - age:
           - *admin_lisa
           - *server_root
+          - *local_machine
