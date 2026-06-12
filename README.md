@@ -107,6 +107,10 @@ The `Justfile` keeps common commands short:
 | `just sops` | Edit the encrypted secrets file |
 | `just age-keygen` | Generate a local age key for SOPS |
 
+## Distributed Builds
+
+The Darwin host configures Determinate Nix to use `/etc/nix/machines` from a managed block in `/etc/nix/nix.custom.conf`. OrbStack remains available for `aarch64-linux` builds, and `home-server` is configured as an `x86_64-linux` builder through the dedicated `nix-remote-builder` user. The builder SSH private key is stored in `secrets/home-server-builder-ssh-key.json` and installed on the Mac as `/etc/nix/home-server-builder`.
+
 ## NixOS Anywhere
 
 The `home-server` host imports the disko module and declares GPT layouts in `hosts/linux/home-server/disk.nix`. The target disks are configured in `config.nix` as `nixosDiskDevices`.
@@ -192,6 +196,10 @@ The `home-server` host runs Vaultwarden at `https://vault.bylisa.dev`. Open sign
 Vaultwarden uses SQLite and the NixOS module's built-in `backup-vaultwarden.service` to prepare a consistent local backup under `/srv/disks/western-digital-hdd/vaultwarden/backup`. `restic-backups-vaultwarden.service` then sends that prepared backup over Tailscale SFTP to the `vaultwarden-backup` user on `matrix.bylisa.dev`.
 
 The home server must be joined to the Tailscale network before the remote backup timer can succeed. SMTP placeholders are in `secrets/vaultwarden.env`; edit that SOPS file once the final mail credentials are known.
+
+## Gotify
+
+The `home-server` host runs Gotify at `https://gotify.bylisa.dev`. Registration is disabled, SQLite data lives under the NixOS module state directory, and the initial admin password is loaded from `secrets/gotify.env`.
 
 ## FlakeHub Authentication
 

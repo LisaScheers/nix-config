@@ -12,6 +12,7 @@
     ./modules/ai-agent-sandbox.nix
     ./modules/base
     ./modules/dns.nix
+    ./modules/gotify.nix
     ./modules/home-assistant.nix
     ./modules/monitoring.nix
     ./modules/neo4j.nix
