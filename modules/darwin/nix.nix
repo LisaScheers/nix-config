@@ -4,6 +4,7 @@
   ...
 }: let
   homeServerBuilderKeyPath = config.sops.secrets."home-server-builder-ssh-key".path;
+  orbStackSshDir = "/Users/${localConfig.primaryUser}/.orbstack/ssh";
 in {
   nix.enable = false;
 
@@ -22,8 +23,20 @@ in {
   };
 
   environment.etc."nix/machines".text = ''
-    ssh-ng://orb aarch64-linux
+    ssh-ng://orbstack-builder aarch64-linux
     ssh-ng://home-server-builder x86_64-linux ${homeServerBuilderKeyPath} 4 1 benchmark,big-parallel,kvm,nixos-test -
+  '';
+
+  environment.etc."ssh/ssh_config.d/101-nix-orbstack-builder.conf".text = ''
+    Host orbstack-builder
+      HostName 127.0.0.1
+      Port 32222
+      User default
+      IdentityFile ${orbStackSshDir}/id_ed25519
+      IdentitiesOnly yes
+      UserKnownHostsFile ${orbStackSshDir}/known_hosts
+      StrictHostKeyChecking yes
+      BatchMode yes
   '';
 
   environment.etc."ssh/ssh_config.d/101-nix-home-server-builder.conf".text = ''
