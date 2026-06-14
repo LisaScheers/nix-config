@@ -1,8 +1,15 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
+  certificateDomain = "media.local.bylisa.dev";
+  jellyfinDomain = "jellyfin.local.bylisa.dev";
+  prowlarrDomain = "prowlarr.local.bylisa.dev";
+  radarrDomain = "radarr.local.bylisa.dev";
+  sonarrDomain = "sonarr.local.bylisa.dev";
+  transmissionDomain = "transmission.local.bylisa.dev";
   mediaRoot = "/srv/disks/western-digital-hdd/media";
   libraryRoot = "${mediaRoot}/library";
   downloadsRoot = "${mediaRoot}/downloads";
@@ -27,7 +34,36 @@
       ip6tables -w -t mangle -D OUTPUT -m owner --uid-owner ${user} -j media-egress-vlan6 2>/dev/null || true
     '')
     mediaServiceUsers;
+  proxyErrorPage = import ./nginx-error-page.nix {inherit pkgs;};
+  proxyHost = port:
+    lib.mkMerge [
+      proxyErrorPage
+      {
+        forceSSL = true;
+        useACMEHost = certificateDomain;
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:${toString port}";
+          proxyWebsockets = true;
+        };
+      }
+    ];
 in {
+  security.acme.certs.${certificateDomain} = {
+    extraDomainNames = [
+      jellyfinDomain
+      prowlarrDomain
+      radarrDomain
+      sonarrDomain
+      transmissionDomain
+    ];
+    extraLegoFlags = [
+      "--dns.propagation-wait"
+      "30s"
+    ];
+    group = "nginx";
+    reloadServices = ["nginx.service"];
+  };
+
   users.groups.media = {};
   users.users.prowlarr = {
     isSystemUser = true;
@@ -124,6 +160,20 @@ in {
       umask = 2;
       watch-dir = "${downloadsRoot}/watch";
       watch-dir-enabled = true;
+    };
+  };
+
+  services.nginx = {
+    enable = true;
+    recommendedProxySettings = true;
+    recommendedTlsSettings = true;
+    virtualHosts = {
+      ${certificateDomain} = proxyHost 8096;
+      ${jellyfinDomain} = proxyHost 8096;
+      ${prowlarrDomain} = proxyHost 9696;
+      ${radarrDomain} = proxyHost 7878;
+      ${sonarrDomain} = proxyHost 8989;
+      ${transmissionDomain} = proxyHost 9091;
     };
   };
 
