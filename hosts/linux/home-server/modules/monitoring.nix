@@ -821,7 +821,6 @@ in {
         local.path = "${storageRoot}/tempo/traces";
         wal.path = "${storageRoot}/tempo/wal";
       };
-      compactor.compaction.block_retention = "336h";
     };
   };
 

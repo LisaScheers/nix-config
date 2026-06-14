@@ -88,6 +88,9 @@ in {
     "d ${mediaRoot}/prowlarr 0750 prowlarr media -"
     "d ${mediaRoot}/radarr 0750 radarr media -"
     "d ${mediaRoot}/sonarr 0750 sonarr media -"
+    "d ${mediaRoot}/transmission 0750 transmission media -"
+    "d ${mediaRoot}/transmission/.config 0750 transmission media -"
+    "d ${mediaRoot}/transmission/.config/transmission-daemon 0750 transmission media -"
   ];
 
   services.jellyfin = {
