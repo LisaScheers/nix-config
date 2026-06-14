@@ -9,6 +9,7 @@ in {
     useNetworkd = true;
     firewall = {
       enable = true;
+      checkReversePath = false;
       allowedTCPPorts = [22];
       allowedUDPPorts = [];
     };

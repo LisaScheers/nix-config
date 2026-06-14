@@ -19,7 +19,7 @@
     nameserver 149.112.112.112
     options edns0 single-request-reopen no-aaaa timeout:2 attempts:3
   '';
-  mediaDnsMount = "${mediaResolvConf}:/etc/resolv.conf";
+  mediaDnsMount = "${mediaResolvConf}:/etc/static/resolv.conf";
   arrDotnetEnvironment = [
     "DOTNET_SYSTEM_NET_DISABLEIPV6=1"
     "DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2SUPPORT=0"
@@ -30,6 +30,72 @@
     "prowlarr"
     "transmission"
   ];
+  mediaEgressRules = pkgs.writeShellApplication {
+    name = "media-egress-routing-rules";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.iproute2
+    ];
+    text = ''
+      private_v4=(
+        0.0.0.0/8
+        10.0.0.0/8
+        100.64.0.0/10
+        127.0.0.0/8
+        169.254.0.0/16
+        172.16.0.0/12
+        192.168.0.0/16
+        224.0.0.0/4
+        240.0.0.0/4
+      )
+      private_v6=(
+        ::1/128
+        fe80::/10
+        fc00::/7
+        ff00::/8
+      )
+      users=(${lib.escapeShellArgs mediaServiceUsers})
+
+      delete_rules_for_uid() {
+        local uid="$1"
+
+        while ip -4 rule delete uidrange "$uid-$uid" 2>/dev/null; do :; done
+        while ip -6 rule delete uidrange "$uid-$uid" 2>/dev/null; do :; done
+      }
+
+      case "''${1:-start}" in
+        start)
+          for user in "''${users[@]}"; do
+            uid="$(id -u "$user")"
+            delete_rules_for_uid "$uid"
+
+            priority=19800
+            for cidr in "''${private_v4[@]}"; do
+              ip -4 rule add priority "$priority" uidrange "$uid-$uid" to "$cidr" table main
+              priority=$((priority + 1))
+            done
+            ip -4 rule add priority 19900 uidrange "$uid-$uid" table media-egress
+
+            priority=19800
+            for cidr in "''${private_v6[@]}"; do
+              ip -6 rule add priority "$priority" uidrange "$uid-$uid" to "$cidr" table main
+              priority=$((priority + 1))
+            done
+            ip -6 rule add priority 19900 uidrange "$uid-$uid" to 2000::/3 unreachable
+          done
+          ;;
+        stop)
+          for user in "''${users[@]}"; do
+            delete_rules_for_uid "$(id -u "$user")"
+          done
+          ;;
+        *)
+          echo "usage: $0 {start|stop}" >&2
+          exit 64
+          ;;
+      esac
+    '';
+  };
   markUserCommands =
     lib.concatMapStringsSep "\n" (user: ''
       iptables -w -t mangle -D OUTPUT -m owner --uid-owner ${user} -j media-egress-vlan 2>/dev/null || true
@@ -227,6 +293,24 @@ in {
   };
 
   systemd.services = {
+    media-egress-routing-rules = {
+      description = "Policy routing rules for media service VLAN egress";
+      after = ["network-online.target"];
+      wants = ["network-online.target"];
+      before = [
+        "radarr.service"
+        "sonarr.service"
+        "prowlarr.service"
+        "transmission.service"
+      ];
+      wantedBy = ["multi-user.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${mediaEgressRules}/bin/media-egress-routing-rules start";
+        ExecStop = "${mediaEgressRules}/bin/media-egress-routing-rules stop";
+      };
+    };
     jellyfin.unitConfig.RequiresMountsFor = mediaRoot;
     radarr = {
       after = ["network-online.target"];
