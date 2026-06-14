@@ -20,6 +20,10 @@
     options edns0 single-request-reopen no-aaaa timeout:2 attempts:3
   '';
   mediaDnsMount = "${mediaResolvConf}:/etc/resolv.conf";
+  arrDotnetEnvironment = [
+    "DOTNET_SYSTEM_NET_DISABLEIPV6=1"
+    "DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2SUPPORT=0"
+  ];
   mediaServiceUsers = [
     "radarr"
     "sonarr"
@@ -230,6 +234,7 @@ in {
       unitConfig.RequiresMountsFor = mediaRoot;
       serviceConfig = {
         BindReadOnlyPaths = [mediaDnsMount];
+        Environment = arrDotnetEnvironment;
         ReadWritePaths = [mediaRoot];
         UMask = lib.mkForce "0002";
       };
@@ -240,6 +245,7 @@ in {
       unitConfig.RequiresMountsFor = mediaRoot;
       serviceConfig = {
         BindReadOnlyPaths = [mediaDnsMount];
+        Environment = arrDotnetEnvironment;
         ReadWritePaths = [mediaRoot];
         UMask = lib.mkForce "0002";
       };
@@ -252,6 +258,7 @@ in {
         DynamicUser = lib.mkForce false;
         ExecStart = lib.mkForce "${config.services.prowlarr.package}/bin/Prowlarr -nobrowser -data=${mediaRoot}/prowlarr";
         BindReadOnlyPaths = [mediaDnsMount];
+        Environment = arrDotnetEnvironment;
         Group = "media";
         ReadWritePaths = [mediaRoot];
         StateDirectory = lib.mkForce "";
