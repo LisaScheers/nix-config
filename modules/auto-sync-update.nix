@@ -337,7 +337,7 @@ in {
 
     intervalSeconds = lib.mkOption {
       type = lib.types.ints.positive;
-      default = 300;
+      default = 3000;
       description = "Number of seconds between sync attempts.";
     };
 
