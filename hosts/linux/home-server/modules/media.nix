@@ -84,6 +84,8 @@ in {
     "d ${libraryRoot}/tv 0775 root media -"
     "d ${downloadsRoot} 0775 root media -"
     "d ${downloadsRoot}/complete 0775 transmission media -"
+    "d ${downloadsRoot}/complete/radarr 0775 transmission media -"
+    "d ${downloadsRoot}/complete/sonarr 0775 transmission media -"
     "d ${downloadsRoot}/incomplete 0775 transmission media -"
     "d ${downloadsRoot}/watch 0775 transmission media -"
     "d ${mediaRoot}/jellyfin 0750 jellyfin media -"
@@ -228,6 +230,7 @@ in {
       unitConfig.RequiresMountsFor = mediaRoot;
       serviceConfig = {
         BindReadOnlyPaths = [mediaDnsMount];
+        ReadWritePaths = [mediaRoot];
         UMask = lib.mkForce "0002";
       };
     };
@@ -237,6 +240,7 @@ in {
       unitConfig.RequiresMountsFor = mediaRoot;
       serviceConfig = {
         BindReadOnlyPaths = [mediaDnsMount];
+        ReadWritePaths = [mediaRoot];
         UMask = lib.mkForce "0002";
       };
     };
@@ -249,6 +253,7 @@ in {
         ExecStart = lib.mkForce "${config.services.prowlarr.package}/bin/Prowlarr -nobrowser -data=${mediaRoot}/prowlarr";
         BindReadOnlyPaths = [mediaDnsMount];
         Group = "media";
+        ReadWritePaths = [mediaRoot];
         StateDirectory = lib.mkForce "";
         UMask = "0002";
         User = "prowlarr";
@@ -258,7 +263,10 @@ in {
       after = ["network-online.target"];
       wants = ["network-online.target"];
       unitConfig.RequiresMountsFor = mediaRoot;
-      serviceConfig.BindReadOnlyPaths = [mediaDnsMount];
+      serviceConfig = {
+        BindReadOnlyPaths = [mediaDnsMount];
+        ReadWritePaths = [mediaRoot];
+      };
     };
   };
 }
