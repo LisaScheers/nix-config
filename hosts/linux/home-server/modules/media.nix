@@ -124,6 +124,11 @@
       }
     ];
 in {
+  hardware.graphics = {
+    enable = true;
+    extraPackages = [pkgs.mesa];
+  };
+
   security.acme.certs.${certificateDomain} = {
     extraDomainNames = [
       jellyfinDomain
@@ -141,6 +146,11 @@ in {
   };
 
   users.groups.media = {};
+  users.users.jellyfin.extraGroups = [
+    "render"
+    "video"
+  ];
+
   users.users.prowlarr = {
     isSystemUser = true;
     group = "media";
