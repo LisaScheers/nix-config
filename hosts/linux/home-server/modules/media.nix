@@ -14,6 +14,12 @@
   libraryRoot = "${mediaRoot}/library";
   downloadsRoot = "${mediaRoot}/downloads";
   mediaRoutingMark = "200";
+  mediaResolvConf = pkgs.writeText "media-egress-resolv.conf" ''
+    nameserver 9.9.9.9
+    nameserver 149.112.112.112
+    options edns0 single-request-reopen timeout:2 attempts:3
+  '';
+  mediaDnsMount = "${mediaResolvConf}:/etc/resolv.conf";
   mediaServiceUsers = [
     "radarr"
     "sonarr"
@@ -220,13 +226,19 @@ in {
       after = ["network-online.target"];
       wants = ["network-online.target"];
       unitConfig.RequiresMountsFor = mediaRoot;
-      serviceConfig.UMask = lib.mkForce "0002";
+      serviceConfig = {
+        BindReadOnlyPaths = [mediaDnsMount];
+        UMask = lib.mkForce "0002";
+      };
     };
     sonarr = {
       after = ["network-online.target"];
       wants = ["network-online.target"];
       unitConfig.RequiresMountsFor = mediaRoot;
-      serviceConfig.UMask = lib.mkForce "0002";
+      serviceConfig = {
+        BindReadOnlyPaths = [mediaDnsMount];
+        UMask = lib.mkForce "0002";
+      };
     };
     prowlarr = {
       after = ["network-online.target"];
@@ -235,6 +247,7 @@ in {
       serviceConfig = {
         DynamicUser = lib.mkForce false;
         ExecStart = lib.mkForce "${config.services.prowlarr.package}/bin/Prowlarr -nobrowser -data=${mediaRoot}/prowlarr";
+        BindReadOnlyPaths = [mediaDnsMount];
         Group = "media";
         StateDirectory = lib.mkForce "";
         UMask = "0002";
@@ -245,6 +258,7 @@ in {
       after = ["network-online.target"];
       wants = ["network-online.target"];
       unitConfig.RequiresMountsFor = mediaRoot;
+      serviceConfig.BindReadOnlyPaths = [mediaDnsMount];
     };
   };
 }
