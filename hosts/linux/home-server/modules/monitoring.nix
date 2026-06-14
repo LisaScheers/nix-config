@@ -185,11 +185,12 @@
       (statPanel 11 "Neo4j up" 20 0 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="neo4j.service",state="active"}'' "neo4j")] "none")
       (statPanel 12 "Squid up" 0 20 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="squid.service",state="active"}'' "squid")] "none")
       (statPanel 13 "Dante up" 4 20 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="dante.service",state="active"}'' "dante")] "none")
+      (statPanel 14 "Media services" 8 20 4 4 [(prometheusTarget "A" ''avg(node_systemd_unit_state{name=~"jellyfin.service|prowlarr.service|radarr.service|sonarr.service|transmission.service",state="active"})'' "media")] "none")
       (timeseriesPanel 5 "CPU usage" 0 4 12 8 [(prometheusTarget "A" ''100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'' "CPU")] "percent")
       (timeseriesPanel 6 "Memory usage" 12 4 12 8 [(prometheusTarget "A" ''100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)'' "memory")] "percent")
       (timeseriesPanel 7 "Filesystem usage" 0 12 12 8 [(prometheusTarget "A" ''100 * (1 - node_filesystem_avail_bytes{mountpoint=~"/|/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"} / node_filesystem_size_bytes{mountpoint=~"/|/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"})'' "{{mountpoint}}")] "percent")
       (timeseriesPanel 8 "Load average" 12 12 12 8 [(prometheusTarget "A" ''node_load1'' "1m") (prometheusTarget "B" ''node_load5'' "5m") (prometheusTarget "C" ''node_load15'' "15m")] "none")
-      (logsPanel 9 "System logs" 0 24 24 8 ''{unit=~"alloy.service|dante.service|grafana.service|loki.service|mimir.service|neo4j.service|nginx.service|podman-home-assistant.service|prometheus-nginx-exporter.service|prometheus-squid-exporter.service|prometheus-unbound-exporter.service|pyroscope.service|squid.service|tempo.service|unbound.service"}'')
+      (logsPanel 9 "System logs" 0 24 24 8 ''{unit=~"alloy.service|dante.service|grafana.service|jellyfin.service|loki.service|mimir.service|neo4j.service|nginx.service|podman-home-assistant.service|prometheus-nginx-exporter.service|prometheus-squid-exporter.service|prometheus-unbound-exporter.service|prowlarr.service|pyroscope.service|radarr.service|sonarr.service|squid.service|tempo.service|transmission.service|unbound.service"}'')
     ];
 
     "observability-stack" = dashboard "observability-stack" "Observability Stack" ["grafana" "lgtm"] [
@@ -275,6 +276,19 @@
       (timeseriesPanel 10 "Rspamd actions" 12 20 12 8 [(prometheusTarget "A" ''sum by (action) (rate(mailcow_rspamd_action{instance="${mailcowHost}"}[5m]))'' "{{action}}")] "ops")
       (logsPanel 11 "Mailcow container logs" 0 28 12 8 ''{instance="${mailcowHost}", source="docker"}'')
       (logsPanel 12 "Mail server journal" 12 28 12 8 ''{instance="${mailcowHost}", source="journal"}'')
+    ];
+
+    "media" = dashboard "media" "Media" ["media" "jellyfin" "servarr" "transmission"] [
+      (statPanel 1 "Jellyfin up" 0 0 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="jellyfin.service",state="active"}'' "jellyfin")] "none")
+      (statPanel 2 "Radarr up" 4 0 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="radarr.service",state="active"}'' "radarr")] "none")
+      (statPanel 3 "Sonarr up" 8 0 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="sonarr.service",state="active"}'' "sonarr")] "none")
+      (statPanel 4 "Prowlarr up" 12 0 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="prowlarr.service",state="active"}'' "prowlarr")] "none")
+      (statPanel 5 "Transmission up" 16 0 4 4 [(prometheusTarget "A" ''node_systemd_unit_state{name="transmission.service",state="active"}'' "transmission")] "none")
+      (statPanel 6 "VLAN 200 link" 20 0 4 4 [(prometheusTarget "A" ''node_network_up{device="enp7s0.200"}'' "enp7s0.200")] "none")
+      (timeseriesPanel 7 "Unit state" 0 4 12 8 [(prometheusTarget "A" ''node_systemd_unit_state{name=~"jellyfin.service|prowlarr.service|radarr.service|sonarr.service|transmission.service",state=~"active|failed"}'' "{{name}} {{state}}")] "none")
+      (timeseriesPanel 8 "VLAN 200 traffic" 12 4 12 8 [(prometheusTarget "A" ''rate(node_network_receive_bytes_total{device="enp7s0.200"}[5m])'' "receive") (prometheusTarget "B" ''rate(node_network_transmit_bytes_total{device="enp7s0.200"}[5m])'' "transmit")] "Bps")
+      (timeseriesPanel 9 "Media storage" 0 12 12 8 [(prometheusTarget "A" ''100 * (1 - node_filesystem_avail_bytes{mountpoint="/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"} / node_filesystem_size_bytes{mountpoint="/srv/disks/western-digital-hdd",fstype!~"tmpfs|devtmpfs|overlay"})'' "western-digital-hdd")] "percent")
+      (logsPanel 10 "Media logs" 12 12 12 8 ''{unit=~"jellyfin.service|prowlarr.service|radarr.service|sonarr.service|transmission.service"}'')
     ];
 
     "neo4j" = dashboard "neo4j" "Neo4j" ["database" "neo4j"] [

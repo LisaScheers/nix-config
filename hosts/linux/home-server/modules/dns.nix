@@ -14,9 +14,15 @@
     "dns.local.bylisa.dev."
     "grafana.local.bylisa.dev."
     "ha.local.bylisa.dev."
+    "jellyfin.local.bylisa.dev."
+    "media.local.bylisa.dev."
     "neo4j.local.bylisa.dev."
+    "prowlarr.local.bylisa.dev."
+    "radarr.local.bylisa.dev."
     "second-life-cache.local.bylisa.dev."
     "sl-cache.local.bylisa.dev."
+    "sonarr.local.bylisa.dev."
+    "transmission.local.bylisa.dev."
     "wazuh.local.bylisa.dev."
   ];
   localRecords =

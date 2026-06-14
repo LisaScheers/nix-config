@@ -14,6 +14,7 @@
     ./modules/dns.nix
     ./modules/gotify.nix
     ./modules/home-assistant.nix
+    ./modules/media.nix
     ./modules/monitoring.nix
     ./modules/neo4j.nix
     ./modules/onepassword-connect.nix
