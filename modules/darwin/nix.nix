@@ -23,7 +23,17 @@ in {
 
   environment.etc."nix/machines".text = ''
     ssh-ng://orb aarch64-linux
-    ssh-ng://nix-remote-builder@192.168.111.2 x86_64-linux ${homeServerBuilderKeyPath} 4 1 benchmark,big-parallel,kvm,nixos-test -
+    ssh-ng://home-server-builder x86_64-linux ${homeServerBuilderKeyPath} 4 1 benchmark,big-parallel,kvm,nixos-test -
+  '';
+
+  environment.etc."ssh/ssh_config.d/101-nix-home-server-builder.conf".text = ''
+    Host home-server-builder
+      HostName 192.168.111.2
+      User nix-remote-builder
+      IdentityFile ${homeServerBuilderKeyPath}
+      IdentitiesOnly yes
+      HostKeyAlias 192.168.111.2
+      BatchMode yes
   '';
 
   system.activationScripts.postActivation.text = ''
