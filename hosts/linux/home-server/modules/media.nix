@@ -17,7 +17,7 @@
   mediaResolvConf = pkgs.writeText "media-egress-resolv.conf" ''
     nameserver 9.9.9.9
     nameserver 149.112.112.112
-    options edns0 single-request-reopen timeout:2 attempts:3
+    options edns0 single-request-reopen no-aaaa timeout:2 attempts:3
   '';
   mediaDnsMount = "${mediaResolvConf}:/etc/resolv.conf";
   mediaServiceUsers = [
