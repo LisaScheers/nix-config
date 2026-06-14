@@ -1,5 +1,5 @@
 {localConfig, ...}: {
-  boot.initrd.systemd.enable = false;
+  boot.initrd.systemd.enable = true;
 
   boot.loader.grub = {
     enable = true;
