@@ -27,7 +27,7 @@ in {
       "file:///Applications/Dia.app/"
       "file:///System/Applications/Calendar.app/"
       "file:///Applications/Codex.app/"
-      "file:///Applications/Cursor.app/"
+      "file:///Applications/Visual%20Studio%20Code.app/"
       "file:///Applications/Nix%20Apps/Alacritty.app/"
       "file:///Applications/Discord.app/"
       "file:///Applications/Firestorm-Nightlyx64.app/"
