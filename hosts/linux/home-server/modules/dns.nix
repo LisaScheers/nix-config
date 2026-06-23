@@ -11,6 +11,7 @@
   upstreamTlsName = "nj004b71mp.cloudflare-gateway.com";
   localNames = [
     "home-server.local.bylisa.dev."
+    "i2p.local.bylisa.dev."
     "dns.local.bylisa.dev."
     "grafana.local.bylisa.dev."
     "ha.local.bylisa.dev."
