@@ -4,6 +4,7 @@
     htop
     tree
     starship
+    nix-output-monitor
     pnpm
     nodejs_24
   ];

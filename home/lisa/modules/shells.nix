@@ -45,5 +45,29 @@ in {
     ];
     settings.show_banner = false;
     extraEnv = "alias codex = ${codexAlias}";
+    extraConfig = ''
+      def --wrapped nix [...args: string] {
+        if ($args | is-empty) {
+          ^nix
+          return
+        }
+
+        let command = ($args | first)
+
+        if ($command in [build shell develop]) {
+          ^nom ...$args
+        } else {
+          ^nix ...$args
+        }
+      }
+
+      def --wrapped nix-build [...args: string] {
+        ^nom-build ...$args
+      }
+
+      def --wrapped nix-shell [...args: string] {
+        ^nom-shell ...$args
+      }
+    '';
   };
 }
