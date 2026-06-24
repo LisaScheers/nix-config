@@ -9,6 +9,7 @@
   httpProxyPort = 4444;
   socksProxyPort = 4447;
   routerPort = 27655;
+  certificates = "${pkgs.i2pd.src}/contrib/certificates";
   proxyErrorPage = import ./nginx-error-page.nix {inherit pkgs;};
 in {
   networking.firewall = {
@@ -30,6 +31,10 @@ in {
     group = "nginx";
     reloadServices = ["nginx.service"];
   };
+
+  systemd.tmpfiles.rules = [
+    "L+ /var/lib/i2pd/certificates - - - - ${certificates}"
+  ];
 
   services.i2pd = {
     enable = true;
@@ -58,6 +63,11 @@ in {
         port = socksProxyPort;
       };
     };
+  };
+
+  systemd.services.i2pd = {
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
   };
 
   services.nginx = {
