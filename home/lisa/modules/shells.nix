@@ -5,6 +5,31 @@
 }: let
   codexAlias = "nix run github:sadjow/codex-cli-nix -- --yolo";
   homeDirectory = config.home.homeDirectory;
+  nomShellFunctions = ''
+    nix() {
+      if [ "$#" -eq 0 ]; then
+        command nix
+        return
+      fi
+
+      case "$1" in
+        build|shell|develop)
+          command nom "$@"
+          ;;
+        *)
+          command nix "$@"
+          ;;
+      esac
+    }
+
+    nix-build() {
+      command nom-build "$@"
+    }
+
+    nix-shell() {
+      command nom-shell "$@"
+    }
+  '';
 in {
   home.sessionVariables = {
     NIXPKGS_ALLOW_UNFREE = "1";
@@ -18,6 +43,7 @@ in {
     enable = true;
     enableCompletion = true;
     shellAliases.codex = codexAlias;
+    initExtra = nomShellFunctions;
   };
 
   programs.zsh = {
@@ -26,6 +52,7 @@ in {
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     shellAliases.codex = codexAlias;
+    initContent = nomShellFunctions;
     oh-my-zsh = {
       enable = true;
       plugins = ["git" "docker" "kubectl"];

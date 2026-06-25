@@ -4,10 +4,47 @@
     pkgs,
     inputs',
     ...
-  }: {
+  }: let
+    nomNixWrappers = pkgs.symlinkJoin {
+      name = "nom-nix-wrappers";
+      paths = [
+        (pkgs.writeShellApplication {
+          name = "nix";
+          text = ''
+            if [ "$#" -eq 0 ]; then
+              exec ${pkgs.nix}/bin/nix
+            fi
+
+            case "$1" in
+              build|shell|develop)
+                exec ${pkgs.nix-output-monitor}/bin/nom "$@"
+                ;;
+              *)
+                exec ${pkgs.nix}/bin/nix "$@"
+                ;;
+            esac
+          '';
+        })
+        (pkgs.writeShellApplication {
+          name = "nix-build";
+          text = ''
+            exec ${pkgs.nix-output-monitor}/bin/nom-build "$@"
+          '';
+        })
+        (pkgs.writeShellApplication {
+          name = "nix-shell";
+          text = ''
+            exec ${pkgs.nix-output-monitor}/bin/nom-shell "$@"
+          '';
+        })
+      ];
+    };
+  in {
     devShells.default = pkgs.mkShellNoCC {
       packages =
         [
+          nomNixWrappers
+          pkgs.nix-output-monitor
           pkgs.just
           pkgs.sops
           pkgs.age
