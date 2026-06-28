@@ -1,9 +1,11 @@
-{
-  config,
-  withSystem,
-  ...
-}: {
-  nixpkgs.pkgs = withSystem config.nixpkgs.hostPlatform.system (
-    {pkgs, ...}: pkgs
-  );
+{...}: {
+  localModules.darwin."nixpkgs" = {
+    config,
+    withSystem,
+    ...
+  }: {
+    nixpkgs.pkgs = withSystem config.nixpkgs.hostPlatform.system (
+      {pkgs, ...}: pkgs
+    );
+  };
 }

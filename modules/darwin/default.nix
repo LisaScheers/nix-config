@@ -1,12 +1,16 @@
-{
-  imports = [
-    ../auto-sync-update.nix
-    ./home-manager.nix
-    ./homebrew.nix
-    ./launchd.nix
-    ./networking.nix
-    ./nix.nix
-    ./nixpkgs.nix
-    ./packages.nix
-  ];
+{config, ...}: let
+  flakeConfig = config;
+in {
+  localModules.darwin.default = {
+    imports = [
+      flakeConfig.localModules.darwin."auto-sync-update"
+      flakeConfig.localModules.darwin."home-manager"
+      flakeConfig.localModules.darwin.homebrew
+      flakeConfig.localModules.darwin.launchd
+      flakeConfig.localModules.darwin.networking
+      flakeConfig.localModules.darwin.nix
+      flakeConfig.localModules.darwin.nixpkgs
+      flakeConfig.localModules.darwin.packages
+    ];
+  };
 }
