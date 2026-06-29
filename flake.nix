@@ -41,7 +41,6 @@
     };
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
-    nixpkgs-authentik.url = "github:LisaScheers/nixpkgs/5105c5e9cf1a92c4888ede41a2e8deb733282feb";
     onepassword-shell-plugins = {
       url = "github:1Password/shell-plugins";
       inputs.nixpkgs.follows = "nixpkgs";

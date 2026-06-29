@@ -25,11 +25,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782167912,
-        "narHash": "sha256-2K3QoP1Y1ZFcWeHX+zVII5W1khgPN55AcfcbB7PnkQI=",
+        "lastModified": 1782719735,
+        "narHash": "sha256-QMnCklOQkWZoxQnmPv7gEpJ7OPYsZ0/p+GKEKqG9YMw=",
         "owner": "sadjow",
         "repo": "codex-cli-nix",
-        "rev": "780625c2f90c991def2132e0b734d8ebb7138ecc",
+        "rev": "244fa5a7e007a5dbe7307c89792a7a03a4082c12",
         "type": "github"
       },
       "original": {
@@ -154,11 +154,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782166451,
-        "narHash": "sha256-SA7LyrayyZBvtzZnesnSLV7haciFuVLeZaX2hd5v4j4=",
+        "lastModified": 1782702263,
+        "narHash": "sha256-8/MG4Su7PhnynrmsVO61IeAfrK7GuUEu+E+gwbhy1QQ=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "471a1d2f840eb7fcbdfd541d99c13a64096f46db",
+        "rev": "789a35fbdeb3c46b260096daa0b321c11be527ea",
         "type": "github"
       },
       "original": {
@@ -170,11 +170,11 @@
     "homebrew-cask": {
       "flake": false,
       "locked": {
-        "lastModified": 1782207636,
-        "narHash": "sha256-AeMpborQWRvaWtDfD6phvuI6hPUHDtbJvZUW+jYAaes=",
+        "lastModified": 1782714023,
+        "narHash": "sha256-r3snnmwgtbbGF5EmLkM9Fvpje6BlUY3RsJowc25IQz0=",
         "owner": "homebrew",
         "repo": "homebrew-cask",
-        "rev": "9dc8f1fabe03b21e1752b17fa747bb9f263a2ea6",
+        "rev": "f5f35d903765abfe05911553d2ce5bceae035b47",
         "type": "github"
       },
       "original": {
@@ -186,11 +186,11 @@
     "homebrew-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1782210362,
-        "narHash": "sha256-LmgmkRBk5bJpqqTf065WJyAph7uSuPPGtNtfvAeAeSU=",
+        "lastModified": 1782721355,
+        "narHash": "sha256-4+hGroGzQrk+nCC3BvAKEbDAbXRD6WbFRBIkUFr2aL4=",
         "owner": "homebrew",
         "repo": "homebrew-core",
-        "rev": "9dfaa5b71fd3a8e41f36771b851180d80bf24da6",
+        "rev": "5d6b9ccece10d72728a9a25a4d59784324526ce2",
         "type": "github"
       },
       "original": {
@@ -254,32 +254,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1781577229,
-        "narHash": "sha256-lrp67w8AulE9Ks53n27I45ADSzbOCn4H+CNW1Ck8B+8=",
-        "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
-        "revCount": 1017464,
+        "lastModified": 1782467914,
+        "narHash": "sha256-pGvFkM8N0xEkIIXDe5YYfbEAvHrk4IxBrjB/x8OomhE=",
+        "rev": "e73de5be04e0eff4190a1432b946d469c794e7b4",
+        "revCount": 1022855,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/NixOS/nixpkgs/0.1.1017464%2Brev-567a49d1913ce81ac6e9582e3553dd90a955875f/019ed27e-44b2-7462-b1ef-3564aa6c28ee/source.tar.gz"
+        "url": "https://api.flakehub.com/f/pinned/NixOS/nixpkgs/0.1.1022855%2Brev-e73de5be04e0eff4190a1432b946d469c794e7b4/019f040d-a4bb-76d0-b7be-7f591f783899/source.tar.gz"
       },
       "original": {
         "type": "tarball",
         "url": "https://flakehub.com/f/NixOS/nixpkgs/0.1"
-      }
-    },
-    "nixpkgs-authentik": {
-      "locked": {
-        "lastModified": 1779579877,
-        "narHash": "sha256-HnehziCzvX/lRlFsgl+L2ZpwLSIvB+XuU/hCJVLcJq4=",
-        "owner": "LisaScheers",
-        "repo": "nixpkgs",
-        "rev": "5105c5e9cf1a92c4888ede41a2e8deb733282feb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LisaScheers",
-        "repo": "nixpkgs",
-        "rev": "5105c5e9cf1a92c4888ede41a2e8deb733282feb",
-        "type": "github"
       }
     },
     "nixpkgs-lib": {
@@ -320,11 +304,11 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1782159582,
-        "narHash": "sha256-CpfORGcg9VPaL8EYZp0Ugr5ZKoe+TC6Joq9Aqm1G4B0=",
+        "lastModified": 1782340892,
+        "narHash": "sha256-wQ+HccO8BfcKhu4P4M6+zeSghu8CnmCE1toBrcDLnXk=",
         "owner": "1Password",
         "repo": "shell-plugins",
-        "rev": "81dce5cb4aac9dbae0205ab632bcc718e0a448da",
+        "rev": "3862aad14fad65a44025a9101790a19c4291703d",
         "type": "github"
       },
       "original": {
@@ -346,7 +330,6 @@
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-authentik": "nixpkgs-authentik",
         "onepassword-shell-plugins": "onepassword-shell-plugins",
         "shop-empty-track": "shop-empty-track",
         "sops-nix": "sops-nix",
