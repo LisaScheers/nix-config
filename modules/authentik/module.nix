@@ -9,7 +9,6 @@
 
     cfg = config.services.authentik;
     settingsFormat = pkgs.formats.yaml {};
-    authentikPkgs = inputs.nixpkgs-authentik.legacyPackages.${pkgs.stdenv.hostPlatform.system};
     authentikServer = "${cfg.package.proxy}/bin/authentik";
     acmeCredentials = lib.optionals (cfg.nginx.enable && cfg.nginx.enableACME) [
       "${cfg.nginx.host}.pem:${config.security.acme.certs.${cfg.nginx.host}.directory}/fullchain.pem"
@@ -21,7 +20,7 @@
 
       package = mkOption {
         type = types.package;
-        default = authentikPkgs.authentik;
+        default = pkgs.authentik;
         defaultText = "inputs.nixpkgs-authentik.legacyPackages.\${pkgs.stdenv.hostPlatform.system}.authentik";
       };
 
