@@ -5,6 +5,7 @@
     ...
   }: let
     atm10Root = "/var/minecraft/atm10-7.0";
+    atm11Root = "/var/minecraft/atm11-0.2.0";
     allTheMonsRoot = "/var/minecraft/allthemons-1.0.0-rc.6";
     minecraftJvmArgs = pkgs.writeText "minecraft-user_jvm_args.txt" ''
       -Xms8G
@@ -27,7 +28,22 @@
       -XX:SurvivorRatio=32
       -XX:+PerfDisableSharedMem
       -XX:MaxTenuringThreshold=1
+      -XX:+UseStringDeduplication
     '';
+    minecraftOps = pkgs.writeText "minecraft-ops.json" (builtins.toJSON [
+      {
+        uuid = "ff7a4b5b-2535-4062-9ae5-118ab095864d";
+        name = "Lisa_S000";
+        level = 4;
+        bypassesPlayerLimit = false;
+      }
+      {
+        uuid = "e6c1ac04-512a-4a7e-b7f3-a0e23a808e8a";
+        name = "eliasbe";
+        level = 4;
+        bypassesPlayerLimit = false;
+      }
+    ]);
     bluemapJar = pkgs.fetchurl {
       url = "https://cdn.modrinth.com/data/swbUV1cr/versions/8iJcPOHJ/bluemap-5.7-neoforge.jar";
       sha256 = "0zaix791001kcpxlwa2dq4nx44618w7jiwjfqblxbl46369c6yl2";
@@ -100,13 +116,13 @@
     systemd.services.atm10-6-6.enable = false;
 
     systemd.services.atm10-7-0 = {
-      enable = true;
+      enable = false;
       description = "All The Mods 10 7.0 Minecraft server";
       wantedBy = ["multi-user.target"];
       unitConfig.Conflicts = [
         "atm-10-tts.service"
         "atm10-6-6.service"
-        "atm11-0-0-23.service"
+        "atm11-0-2-0.service"
         "cutie-craft.service"
         "cus2.service"
       ];
@@ -182,6 +198,93 @@
       };
     };
 
+    systemd.services.atm11-0-2-0 = {
+      enable = true;
+      description = "All The Mods 11 0.2.0 Minecraft server";
+      wantedBy = ["multi-user.target"];
+      unitConfig.Conflicts = [
+        "atm-10-tts.service"
+        "atm10-6-6.service"
+        "atm10-7-0.service"
+        "allthemons-1-0-0-rc-6.service"
+        "cutie-craft.service"
+        "cus2.service"
+      ];
+      path = with pkgs; [
+        coreutils
+        curl
+        gawk
+        jdk25_headless
+        wget
+      ];
+      environment = {
+        ATM11_JAVA = "${pkgs.jdk25_headless}/bin/java";
+        ATM11_RESTART = "false";
+      };
+      preStart = ''
+        if [ ! -f ${atm11Root}/startserver.sh ]; then
+          echo "Missing ${atm11Root}/startserver.sh. Extract ServerFiles-0.2.0.zip into ${atm11Root} before starting this service."
+          exit 1
+        fi
+
+        install -m 0644 ${minecraftJvmArgs} ${atm11Root}/user_jvm_args.txt
+        install -m 0644 ${minecraftOps} ${atm11Root}/ops.json
+        printf 'eula=true\n' > ${atm11Root}/eula.txt
+        chmod +x ${atm11Root}/startserver.sh
+
+        touch ${atm11Root}/server.properties
+        set_property() {
+          key="$1"
+          value="$2"
+          properties=${atm11Root}/server.properties
+          if grep -q "^$key=" ${atm11Root}/server.properties; then
+            awk -v key="$key" -v value="$value" '
+              $0 ~ "^" key "=" {
+                print key "=" value
+                next
+              }
+              { print }
+            ' "$properties" > "$properties.tmp"
+            mv "$properties.tmp" "$properties"
+          else
+            printf '%s=%s\n' "$key" "$value" >> ${atm11Root}/server.properties
+          fi
+        }
+
+        set_property allow-flight true
+        set_property motd "All the Mods 11"
+        set_property max-tick-time 180000
+        set_property max-players 20
+        set_property op-permission-level 4
+        set_property simulation-distance 5
+        set_property view-distance 8
+        set_property online-mode true
+        set_property use-native-transport true
+        if [ -f /root/allthemons-rcon.password ]; then
+          set_property enable-rcon true
+          set_property rcon.port 25575
+          set_property rcon.password "$(cat /root/allthemons-rcon.password)"
+        fi
+
+        # BlueMap 5.7 crashes ATM 11 / NeoForge 26 module scanning. Keep the
+        # managed jar out of this server root until a compatible build is pinned.
+        rm -f ${atm11Root}/mods/bluemap-5.7-neoforge.jar
+      '';
+      script = ''
+        cd ${atm11Root}
+        exec ./startserver.sh
+      '';
+      serviceConfig = {
+        Restart = "always";
+        RestartSec = "30s";
+        KillSignal = "SIGINT";
+        TimeoutStopSec = "180s";
+        MemoryHigh = "14G";
+        MemoryMax = "15G";
+        LimitNOFILE = 1048576;
+      };
+    };
+
     systemd.services.allthemons-1-0-0-rc-6 = {
       enable = false;
       description = "All the Mons 1.0.0-rc.6 Minecraft server";
@@ -190,6 +293,7 @@
         "atm-10-tts.service"
         "atm10-6-6.service"
         "atm10-7-0.service"
+        "atm11-0-2-0.service"
         "allthemons-1-0-0-rc-5.service"
         "cutie-craft.service"
         "cus2.service"
@@ -253,7 +357,7 @@
         '';
         locations = {
           "/" = {
-            root = "${atm10Root}/bluemap/web/";
+            root = "${atm11Root}/bluemap/web/";
           };
         };
       };
