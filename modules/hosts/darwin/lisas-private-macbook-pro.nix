@@ -1,5 +1,9 @@
-{...}: {
-  localModules.darwin."lisas-private-macbook-pro" = {
+{config, ...}: let
+  flakeConfig = config;
+in {
+  localModules.darwin."macbook-pro" = {
+    darwinHost,
+    darwinHostConfig,
     flakeRevision,
     lib,
     localConfig,
@@ -8,12 +12,18 @@
     system.primaryUser = localConfig.primaryUser;
     users.users.${localConfig.primaryUser}.uid = localConfig.primaryUserUid;
 
+    networking = {
+      computerName = darwinHostConfig.computerName or darwinHost;
+      hostName = darwinHostConfig.hostName or darwinHost;
+      localHostName = darwinHostConfig.localHostName or darwinHost;
+    };
+
     security.pam.services.sudo_local.touchIdAuth = true;
 
     system.configurationRevision = lib.mkDefault flakeRevision;
     system.stateVersion = 6;
 
-    nixpkgs.hostPlatform = localConfig.darwinSystem;
+    nixpkgs.hostPlatform = darwinHostConfig.system or localConfig.darwinSystem;
 
     system.activationScripts.postActivation.text = ''
       echo "configuring VS Code command..." >&2
@@ -38,5 +48,17 @@
       defaultSopsFile = ../../../secrets/secrets.yaml;
       age.keyFile = localConfig.sopsAgeKeyFile;
     };
+  };
+
+  localModules.darwin."lisas-private-macbook-pro" = {
+    imports = [
+      flakeConfig.localModules.darwin."macbook-pro"
+    ];
+  };
+
+  localModules.darwin.vega = {
+    imports = [
+      flakeConfig.localModules.darwin."macbook-pro"
+    ];
   };
 }

@@ -8,6 +8,26 @@
 
   darwinHost = "Lisas-private-MacBook-Pro";
   darwinSystem = "aarch64-darwin";
+  darwinHosts = {
+    "Lisas-private-MacBook-Pro" = {
+      system = "aarch64-darwin";
+      module = "lisas-private-macbook-pro";
+      manageNix = false;
+      computerName = "Lisas-private-MacBook-Pro";
+      hostName = "Lisas-private-MacBook-Pro";
+      localHostName = "Lisas-private-MacBook-Pro";
+    };
+
+    Vega = {
+      system = "aarch64-darwin";
+      module = "vega";
+      manageNix = true;
+      useLix = true;
+      computerName = "Vega";
+      hostName = "Vega";
+      localHostName = "Vega";
+    };
+  };
   darwinFlakePath = "/private/etc/nix-darwin";
   darwinHomeDirectory = "/Users/lisa";
 

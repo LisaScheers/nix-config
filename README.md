@@ -10,7 +10,7 @@ This repository contains declarative macOS and NixOS host configurations managed
 | `outputs.nix` | Hand-written flake output entrypoint | Imports `modules/` with `import-tree` |
 | `modules/` | Auto-imported flake-parts modules, host modules, Home Manager modules, and app scripts | Defines flake outputs, `flake-file.inputs`, and local deferred modules |
 | `config.nix` | Checked-in local host, user, and supported-system values | Used by flake modules through `localConfig` |
-| `modules/hosts/darwin.nix` | Darwin host flake output | `darwinConfigurations.Lisas-private-MacBook-Pro` |
+| `modules/hosts/darwin.nix` | Darwin host flake outputs | `darwinConfigurations.Lisas-private-MacBook-Pro`, `darwinConfigurations.Vega` |
 | `modules/hosts/home-server/` | home-server NixOS modules and disko layout | `nixosConfigurations.home-server` |
 | `modules/hosts/matrix/` | Matrix host NixOS modules | `nixosConfigurations.matrix.bylisa.dev` |
 | `modules/home/lisa/` | Lisa's macOS Home Manager modules and SSH data | `homeModules.lisa-macos` |
@@ -38,6 +38,7 @@ nix run .#write-flake
 Host configurations are currently declared for:
 
 - `Lisas-private-MacBook-Pro` on `aarch64-darwin`
+- `Vega` on `aarch64-darwin`
 - `home-server` on `x86_64-linux`
 - `matrix.bylisa.dev` on `x86_64-linux`
 
@@ -72,8 +73,19 @@ Build host configurations directly:
 
 ```sh
 nix build .#darwinConfigurations.Lisas-private-MacBook-Pro.system
+nix build .#darwinConfigurations.Vega.system
 nix build .#nixosConfigurations.home-server.config.system.build.toplevel
 ```
+
+## Fresh Darwin Install
+
+On a new Mac, run the standalone bootstrap script from this repository:
+
+```sh
+./install-darwin.sh --host Vega
+```
+
+The script installs upstream Nix when needed for bootstrap, clones or updates this repository at `/private/etc/nix-darwin`, builds the requested nix-darwin host, then switches to it. `Vega` uses nix-darwin-managed Lix through the Lix nixos-module; `Lisas-private-MacBook-Pro` keeps its existing Determinate-managed Nix install. Use `--build-only` to stop after the build.
 
 ## Workflow Apps
 
@@ -116,7 +128,7 @@ The `Justfile` keeps common commands short:
 
 ## Distributed Builds
 
-The Darwin host configures Determinate Nix to use `/etc/nix/machines` from a managed block in `/etc/nix/nix.custom.conf`. OrbStack remains available for `aarch64-linux` builds, and `home-server` is configured as an `x86_64-linux` builder through the dedicated `nix-remote-builder` user. The builder SSH private key is stored in `secrets/home-server-builder-ssh-key.json` and installed on the Mac as `/etc/nix/home-server-builder`.
+The Darwin hosts configure their active Nix implementation to use `/etc/nix/machines`. Vega does this through nix-darwin-managed Lix settings; `Lisas-private-MacBook-Pro` keeps Determinate Nix and receives the equivalent builder settings through `/etc/nix/nix.custom.conf`. OrbStack remains available for `aarch64-linux` builds, and `home-server` is configured as an `x86_64-linux` builder through the dedicated `nix-remote-builder` user. The builder SSH private key is stored in `secrets/home-server-builder-ssh-key.json` and installed on the Mac as `/etc/nix/home-server-builder`.
 
 ## NixOS Anywhere
 
@@ -207,15 +219,6 @@ The home server must be joined to the Tailscale network before the remote backup
 ## Gotify
 
 The `home-server` host runs Gotify at `https://gotify.bylisa.dev`. Registration is disabled, SQLite data lives under the NixOS module state directory, and the initial admin password is loaded from `secrets/gotify.env`.
-
-## FlakeHub Authentication
-
-FlakeHub authentication is machine-local and must not be committed. On this Mac, Determinate Nix manages authentication through `determinate-nixd`:
-
-```sh
-just flakehub-status
-just flakehub-login
-```
 
 ## Adding A Host
 

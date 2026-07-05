@@ -1,17 +1,22 @@
 {...}: {
   localModules.darwin."nix" = {
     config,
+    darwinHostConfig,
+    lib,
     localConfig,
     ...
   }: let
+    manageNix = darwinHostConfig.manageNix or true;
     homeServerBuilderKeyPath = config.sops.secrets."home-server-builder-ssh-key".path;
     orbStackSshDir = "/Users/${localConfig.primaryUser}/.orbstack/ssh";
   in {
-    nix.enable = false;
+    nix.enable = manageNix;
 
-    nix.settings = {
+    nix.settings = lib.mkIf manageNix {
       experimental-features = "nix-command flakes";
       trusted-users = [localConfig.primaryUser];
+      builders = lib.mkForce "@/etc/nix/machines";
+      builders-use-substitutes = true;
     };
 
     sops.secrets."home-server-builder-ssh-key" = {
@@ -50,14 +55,27 @@
         BatchMode yes
     '';
 
-    system.activationScripts.postActivation.text = ''
-      echo "configuring Nix distributed builders..." >&2
+    system.activationScripts.postActivation.text = lib.mkIf (!manageNix) ''
+      echo "removing unsupported Determinate Nix settings..." >&2
+
+      nix_conf=/etc/nix/nix.conf
+      nix_conf_tmp=$(mktemp /tmp/nix-darwin-nix-conf.XXXXXX)
+      tmp_file=
+      trap 'rm -f "$nix_conf_tmp" "''${tmp_file:-}"' EXIT
+
+      if [ -f "$nix_conf" ]; then
+        awk '$1 != "eval-cores" && $1 != "lazy-trees" { print }' "$nix_conf" > "$nix_conf_tmp"
+        if ! cmp -s "$nix_conf" "$nix_conf_tmp"; then
+          install -m 0644 "$nix_conf_tmp" "$nix_conf"
+        fi
+      fi
+
+      echo "configuring Determinate Nix distributed builders..." >&2
 
       custom_conf=/etc/nix/nix.custom.conf
       begin_marker="# nix-darwin: distributed builders begin"
       end_marker="# nix-darwin: distributed builders end"
       tmp_file=$(mktemp /tmp/nix-darwin-nix-custom.XXXXXX)
-      trap 'rm -f "$tmp_file"' EXIT
 
       install -d -m 0755 /etc/nix
 

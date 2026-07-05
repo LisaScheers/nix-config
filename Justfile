@@ -121,14 +121,6 @@ matrix-check:
     just matrix-sync
     {{matrix-ssh}} {{matrix-server}} -t "sudo nixos-rebuild test --flake ~/flake#{{matrix-flake}}"
 
-# Check whether the current machine is authenticated to FlakeHub Cache
-flakehub-status:
-    determinate-nixd status
-
-# Refresh machine-local FlakeHub authentication
-flakehub-login:
-    sudo determinate-nixd login
-
 # Build Darwin configuration (dry-run)
 darwin-build host="Lisas-private-MacBook-Pro":
     darwin-rebuild build --flake .#"{{host}}"
