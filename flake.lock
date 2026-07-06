@@ -417,16 +417,16 @@
       "locked": {
         "lastModified": 1778579822,
         "narHash": "sha256-zZV4w9a9luEX7aDGpHTJ5TgO+gOZXJjHq9ISi+U6wto=",
-        "owner": "LisaScheers",
-        "repo": "shop-empty-track",
+        "ref": "main",
         "rev": "1394155238598edcbf7ea0a64b64e028ce78bb57",
-        "type": "github"
+        "revCount": 5,
+        "type": "git",
+        "url": "ssh://git@github.com/LisaScheers/shop-empty-track.git"
       },
       "original": {
-        "owner": "LisaScheers",
         "ref": "main",
-        "repo": "shop-empty-track",
-        "type": "github"
+        "type": "git",
+        "url": "ssh://git@github.com/LisaScheers/shop-empty-track.git"
       }
     },
     "sops-nix": {
@@ -458,16 +458,16 @@
       "locked": {
         "lastModified": 1768839504,
         "narHash": "sha256-a0j062OYu40CKXYF57lf9Fq0yPqR5zE5hd8tst/9Mgc=",
-        "owner": "LisaScheers",
-        "repo": "stock-keeper",
+        "ref": "main",
         "rev": "fb0098558b72b81c1f1408a528a912a64df240d0",
-        "type": "github"
+        "revCount": 16,
+        "type": "git",
+        "url": "ssh://git@github.com/LisaScheers/stock-keeper.git"
       },
       "original": {
-        "owner": "LisaScheers",
         "ref": "main",
-        "repo": "stock-keeper",
-        "type": "github"
+        "type": "git",
+        "url": "ssh://git@github.com/LisaScheers/stock-keeper.git"
       }
     },
     "systems": {

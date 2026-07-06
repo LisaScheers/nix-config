@@ -11,5 +11,9 @@
       XDG_VIDEOS_DIR = "${homeDirectory}/Videos";
       XDG_PROJECTS_DIR = "${homeDirectory}/Projects";
     };
+
+    xdg.configFile."nix/nix.conf".text = ''
+      !include /run/secrets/nix-github-access-token-conf-user
+    '';
   };
 }

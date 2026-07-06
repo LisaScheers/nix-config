@@ -9,10 +9,9 @@
       fh
       nil
       ripgrep
-      gemini-cli
       raycast
       alacritty
-      audacity
+      alacritty.terminfo
       element-desktop
       mpv
       obsidian

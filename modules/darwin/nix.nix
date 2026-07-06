@@ -8,6 +8,8 @@
   }: let
     manageNix = darwinHostConfig.manageNix or true;
     homeServerBuilderKeyPath = config.sops.secrets."home-server-builder-ssh-key".path;
+    nixGithubAccessTokenConfigKey = "data/nix-github-access-token-conf";
+    nixGithubAccessTokenSystemPath = "/etc/nix/github-access-token.conf";
     orbStackSshDir = "/Users/${localConfig.primaryUser}/.orbstack/ssh";
   in {
     nix.enable = manageNix;
@@ -19,6 +21,10 @@
       builders-use-substitutes = true;
     };
 
+    nix.extraOptions = lib.mkIf manageNix ''
+      !include ${nixGithubAccessTokenSystemPath}
+    '';
+
     sops.secrets."home-server-builder-ssh-key" = {
       sopsFile = ../../secrets/home-server-builder-ssh-key.json;
       format = "json";
@@ -26,6 +32,20 @@
       path = "/etc/nix/home-server-builder";
       owner = "root";
       mode = "0600";
+    };
+
+    sops.secrets."nix-github-access-token-conf-system" = {
+      key = nixGithubAccessTokenConfigKey;
+      path = nixGithubAccessTokenSystemPath;
+      owner = "root";
+      mode = "0400";
+    };
+
+    sops.secrets."nix-github-access-token-conf-user" = {
+      key = nixGithubAccessTokenConfigKey;
+      owner = localConfig.primaryUser;
+      group = "staff";
+      mode = "0400";
     };
 
     environment.etc."nix/machines".text = ''
@@ -92,6 +112,7 @@
       cat >> "$tmp_file" <<'EOF'
 
       # nix-darwin: distributed builders begin
+      !include ${nixGithubAccessTokenSystemPath}
       builders = @/etc/nix/machines
       builders-use-substitutes = true
       # nix-darwin: distributed builders end

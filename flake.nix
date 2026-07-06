@@ -50,7 +50,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     shop-empty-track = {
-      url = "github:LisaScheers/shop-empty-track/main";
+      url = "git+ssh://git@github.com/LisaScheers/shop-empty-track.git?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     sops-nix = {
@@ -58,7 +58,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     stock-keeper = {
-      url = "github:LisaScheers/stock-keeper/main";
+      url = "git+ssh://git@github.com/LisaScheers/stock-keeper.git?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
