@@ -112,6 +112,7 @@
       cat >> "$tmp_file" <<'EOF'
 
       # nix-darwin: distributed builders begin
+      experimental-features = nix-command flakes
       !include ${nixGithubAccessTokenSystemPath}
       builders = @/etc/nix/machines
       builders-use-substitutes = true
