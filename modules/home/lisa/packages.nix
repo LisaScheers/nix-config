@@ -1,6 +1,7 @@
 {...}: {
   localModules.home."lisa-packages" = {pkgs, ...}: {
     home.packages = with pkgs; [
+      alacritty.terminfo
       git
       htop
       tree
