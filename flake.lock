@@ -38,6 +38,23 @@
         "type": "github"
       }
     },
+    "comic-code-fonts": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1783387658,
+        "narHash": "sha256-v17GCEXlSMHyB4z1Bj9ITuJgJXgj3YxkRIZDo0nMrlk=",
+        "ref": "main",
+        "rev": "067456cbca1c84afb85d45f519511dbb560493ba",
+        "revCount": 1,
+        "type": "git",
+        "url": "ssh://git@github.com/LisaScheers/comic-code-fonts.git"
+      },
+      "original": {
+        "ref": "main",
+        "type": "git",
+        "url": "ssh://git@github.com/LisaScheers/comic-code-fonts.git"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -390,6 +407,7 @@
     "root": {
       "inputs": {
         "codex-cli-nix": "codex-cli-nix",
+        "comic-code-fonts": "comic-code-fonts",
         "disko": "disko",
         "flake-file": "flake-file",
         "flake-parts": "flake-parts",

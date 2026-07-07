@@ -13,6 +13,10 @@
       url = "github:sadjow/codex-cli-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    comic-code-fonts = {
+      url = "git+ssh://git@github.com/LisaScheers/comic-code-fonts.git?ref=main";
+      flake = false;
+    };
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";

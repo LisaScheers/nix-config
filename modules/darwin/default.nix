@@ -5,6 +5,7 @@ in {
     imports = [
       flakeConfig.localModules.darwin."auto-sync-update"
       flakeConfig.localModules.darwin."home-manager"
+      flakeConfig.localModules.darwin.fonts
       flakeConfig.localModules.darwin.homebrew
       flakeConfig.localModules.darwin.launchd
       flakeConfig.localModules.darwin.networking

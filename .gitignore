@@ -26,5 +26,7 @@ result-*
 *.dec.*
 *.plain
 *.plain.*
+secrets/*.tar
+secrets/*.tar.gz
 *.agekey
 age-key.txt

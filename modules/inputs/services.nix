@@ -9,5 +9,10 @@
       url = "git+ssh://git@github.com/LisaScheers/shop-empty-track.git?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    comic-code-fonts = {
+      url = "git+ssh://git@github.com/LisaScheers/comic-code-fonts.git?ref=main";
+      flake = false;
+    };
   };
 }
