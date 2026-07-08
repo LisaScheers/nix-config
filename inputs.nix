@@ -49,4 +49,5 @@
     inputs.nixpkgs.follows = "nixpkgs";
     url = "github:LisaScheers/stock-keeper/main";
   };
+  systems.url = "github:nix-systems/default";
 }

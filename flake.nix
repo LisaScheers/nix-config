@@ -1,6 +1,5 @@
 # This flake.nix file is auto-generated.
-# The source of truth is merged from flake-parts modules under modules/.
-# Each input is declared near the flake module that uses it.
+# The source of truth is merged from flake-parts modules under flake-parts/.
 # Regenerate with: nix run .#write-flake
 # https://flake-file.denful.dev/
 {
@@ -8,28 +7,27 @@
 
   outputs = inputs: import ./outputs.nix inputs;
 
+  nixConfig = {
+    extraSubstituters = [ ];
+    extraTrustedPublicKeys = [ ];
+  };
+
   inputs = {
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     codex-cli-nix = {
       url = "github:sadjow/codex-cli-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     comic-code-fonts = {
-      url = "git+ssh://git@github.com/LisaScheers/comic-code-fonts.git?ref=main";
+      url = "github:LisaScheers/comic-code-fonts";
       flake = false;
     };
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    disko.url = "github:nix-community/disko";
     flake-file.url = "github:denful/flake-file";
-    flake-parts.url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*";
-    flake-parts-builder = {
-      url = "github:tsandrini/flake-parts-builder";
-      inputs = {
-        flake-parts.follows = "flake-parts";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
+    flake-parts.url = "github:hercules-ci/flake-parts";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -42,12 +40,19 @@
       url = "github:homebrew/homebrew-core";
       flake = false;
     };
-    import-tree = {
-      url = "github:vic/import-tree";
+    lix = {
+      url = "https://git.lix.systems/lix-project/lix/archive/main.tar.gz";
       flake = false;
     };
-    lix-nixos-module = {
-      url = "git+https://git.lix.systems/lix-project/nixos-module";
+    lix-module = {
+      url = "https://git.lix.systems/lix-project/nixos-module/archive/main.tar.gz";
+      inputs = {
+        lix.follows = "lix";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+    nix-auto-follow = {
+      url = "github:fzakaria/nix-auto-follow";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-darwin = {
@@ -55,22 +60,20 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
-    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     onepassword-shell-plugins = {
       url = "github:1Password/shell-plugins";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     shop-empty-track = {
-      url = "git+ssh://git@github.com/LisaScheers/shop-empty-track.git?ref=main";
+      url = "github:LisaScheers/shop-empty-track/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    sops-nix = {
-      url = "https://flakehub.com/f/Mic92/sops-nix/0.1.*";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    sops-nix.url = "github:Mic92/sops-nix";
     stock-keeper = {
-      url = "git+ssh://git@github.com/LisaScheers/stock-keeper.git?ref=main";
+      url = "github:LisaScheers/stock-keeper/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    systems.url = "github:nix-systems/default";
   };
 }

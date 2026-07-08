@@ -35,12 +35,6 @@
   nixosDeployTarget = "lisa@192.168.111.2";
   nixosDeployRemoteDir = "/tmp/nix-config-deploy";
   nixosSystem = "x86_64-linux";
-  nixosDiskDevices = {
-    system = "/dev/disk/by-id/nvme-eui.002538ba71b63d8a";
-    secondLifeCacheNvme = "/dev/disk/by-id/nvme-eui.00080d02000707ea";
-    kingstonSsd = "/dev/disk/by-id/ata-KINGSTON_SUV400S37240G_50026B726406FC2C";
-    westernDigitalHdd = "/dev/disk/by-id/wwn-0x50014ee261c9005d";
-  };
 
   primaryUser = "lisa";
   primaryUserUid = 501;
