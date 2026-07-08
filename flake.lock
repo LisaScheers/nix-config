@@ -107,6 +107,30 @@
         "url": "https://flakehub.com/f/hercules-ci/flake-parts/0.1.%2A"
       }
     },
+    "flake-parts-builder": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "systems": "systems_2"
+      },
+      "locked": {
+        "lastModified": 1759773842,
+        "narHash": "sha256-E/6qVxlyWav3Zt8Xmwmow6V7ncdOMK3zm2DWIbgOXPM=",
+        "owner": "tsandrini",
+        "repo": "flake-parts-builder",
+        "rev": "7627679442eeff07539a5309ea2c0b7b4d4bc27c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tsandrini",
+        "repo": "flake-parts-builder",
+        "type": "github"
+      }
+    },
     "flake-parts_2": {
       "inputs": {
         "nixpkgs-lib": "nixpkgs-lib_2"
@@ -166,7 +190,7 @@
     },
     "flake-utils_2": {
       "inputs": {
-        "systems": "systems_2"
+        "systems": "systems_3"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -388,7 +412,7 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "systems": "systems_3"
+        "systems": "systems_4"
       },
       "locked": {
         "lastModified": 1783460511,
@@ -411,6 +435,7 @@
         "disko": "disko",
         "flake-file": "flake-file",
         "flake-parts": "flake-parts",
+        "flake-parts-builder": "flake-parts-builder",
         "home-manager": "home-manager",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
@@ -519,6 +544,21 @@
       }
     },
     "systems_3": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_4": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",

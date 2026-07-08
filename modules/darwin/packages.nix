@@ -1,4 +1,4 @@
-{...}: {
+{inputs, ...}: {
   localModules.darwin."packages" = {pkgs, ...}: {
     environment.systemPackages = with pkgs; [
       just
@@ -20,6 +20,7 @@
       the-unarchiver
       oxfmt
       oxlint
+      inputs.flake-parts-builder.packages."aarch64-darwin".default
     ];
   };
 }

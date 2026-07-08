@@ -3,6 +3,11 @@
     nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
 
     flake-parts.url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*";
+    flake-parts-builder = {
+      url = "github:tsandrini/flake-parts-builder";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     import-tree = {
       url = "github:vic/import-tree";

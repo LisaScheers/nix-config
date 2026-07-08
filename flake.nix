@@ -23,6 +23,13 @@
     };
     flake-file.url = "github:denful/flake-file";
     flake-parts.url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*";
+    flake-parts-builder = {
+      url = "github:tsandrini/flake-parts-builder";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
