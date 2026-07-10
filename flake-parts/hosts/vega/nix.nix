@@ -2,7 +2,8 @@
   config,
   ...
 }: let
-  homeServerBuilderKeyPath = config.sops.secrets."home-server-builder-ssh-key".path;
+  nookBuilderKeyPath = config.sops.secrets."nook-builder-ssh-key".path;
+  nixGithubAccessTokenSystemPath = "/etc/nix/github-access-token.conf";
   orbStackSshDir = "/Users/lisa/.orbstack/ssh";
 in {
   nix = {
@@ -15,10 +16,10 @@ in {
         system = "aarch64-linux";
       }
       {
-        hostName = "home-server-builder";
+        hostName = "nook-builder";
         protocol = "ssh-ng";
         system = "x86_64-linux";
-        sshKey = homeServerBuilderKeyPath;
+        sshKey = nookBuilderKeyPath;
         maxJobs = 4;
         speedFactor = 1;
         supportedFeatures = [
@@ -34,16 +35,44 @@ in {
       trusted-users = ["lisa" "root"];
       builders-use-substitutes = true;
     };
+    extraOptions = ''
+      !include ${nixGithubAccessTokenSystemPath}
+    '';
   };
 
-  sops.secrets."home-server-builder-ssh-key" = {
-    sopsFile = ../../../secrets/home-server-builder-ssh-key.json;
-    format = "json";
-    key = "private_key";
-    path = "/etc/nix/home-server-builder";
+  sops.secrets = {
+    "nook-builder-ssh-key" = {
+      sopsFile = ../../secrets/vega/nix.sops.yaml;
+      key = "builder_ssh_private_key";
+      path = "/etc/nix/nook-builder";
+      owner = "root";
+      group = "staff";
+      mode = "0600";
+    };
+    "nix-github-access-token" = {
+      sopsFile = ../../secrets/vega/nix.sops.yaml;
+      key = "github_access_token";
+    };
+  };
+
+  sops.templates."nix-github-access-token-system.conf" = {
+    path = nixGithubAccessTokenSystemPath;
     owner = "root";
     group = "staff";
-    mode = "0600";
+    mode = "0400";
+    content = ''
+      access-tokens = github.com=${config.sops.placeholder."nix-github-access-token"}
+    '';
+  };
+
+  sops.templates."nix-github-access-token-user.conf" = {
+    path = "/run/secrets/nix/user-github-access-token.conf";
+    owner = "lisa";
+    group = "staff";
+    mode = "0400";
+    content = ''
+      access-tokens = github.com=${config.sops.placeholder."nix-github-access-token"}
+    '';
   };
 
   programs.ssh = {
@@ -58,16 +87,16 @@ in {
         StrictHostKeyChecking yes
         BatchMode yes
 
-      Host home-server-builder
+      Host nook-builder
         HostName 192.168.111.2
         User nix-remote-builder
-        IdentityFile ${homeServerBuilderKeyPath}
+        IdentityFile ${nookBuilderKeyPath}
         IdentitiesOnly yes
         HostKeyAlias 192.168.111.2
         BatchMode yes
     '';
 
-    knownHosts.home-server-builder = {
+    knownHosts.nook-builder = {
       hostNames = ["192.168.111.2"];
       publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEHlf+pLT6XITnorOuDH0j9KtrVgZktsE5rPQzw3An8y";
     };

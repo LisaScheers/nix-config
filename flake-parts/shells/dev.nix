@@ -17,8 +17,10 @@
   nix,
   nixos-anywhere,
   age,
+  jq,
   sops,
   ssh-to-age,
+  yq-go,
   symlinkJoin,
   writeShellApplication,
   treefmt-wrapper ? null,
@@ -67,8 +69,7 @@ let
   };
 
   env = {
-    # MY_ENV_VAR = "Hello, World!";
-    # MY_OTHER_ENV_VAR = "Goodbye, World!";
+    SOPS_AGE_KEY_FILE = "$HOME/.config/sops/age/keys.txt";
   };
 in
 mkShell {
@@ -101,7 +102,9 @@ mkShell {
       just
       sops
       age
+      jq
       ssh-to-age
+      yq-go
       nixos-anywhere
       inputs'.home-manager.packages.home-manager
     ]

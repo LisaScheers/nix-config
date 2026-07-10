@@ -1,8 +1,10 @@
-{config, ...}: {
-  sops = {
-    age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
-    defaultSopsFile = ../../../secrets/secrets.yaml;
-    secrets."cloudflare-dns-api-token".key = "data/cloudflare-dns-api-token";
+{config, ...}: let
+  secretsFile = ../../secrets/nook/cloudflare-acme.sops.yaml;
+in {
+  sops.secrets."cloudflare-dns-api-token" = {
+    sopsFile = secretsFile;
+    key = "dns_api_token";
+    restartUnits = [ "cloudflare-dyndns.service" ];
   };
 
   services.cloudflare-dyndns = {

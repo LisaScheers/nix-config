@@ -32,12 +32,13 @@
       modules =
         [
           {
+            forge.security.sops.enable = true;
             nixpkgs.overlays = [config.flake.overlays.default] ++ extraOverlays;
             nixpkgs.config.allowUnfree = true;
             networking.hostName = hostName;
           }
           inputs.disko.nixosModules.disko
-          inputs.sops-nix.nixosModules.sops
+          config.flake.nixosModules.security_sops
           ./${hostName}
         ]
         ++ extraModules
@@ -90,12 +91,13 @@
       modules =
         [
           {
+            forge.security.sops.enable = true;
             nixpkgs.overlays = [config.flake.overlays.default] ++ extraOverlays;
             nixpkgs.config.allowUnfree = true;
             networking.hostName = hostName;
           }
           inputs.nix-homebrew.darwinModules.nix-homebrew
-          inputs.sops-nix.darwinModules.sops
+          config.flake.darwinModules.security_sops
 
           ./${hostName}
         ]
@@ -109,6 +111,7 @@
             inputs.home-manager.darwinModules.home-manager
             {
               home-manager = {
+                backupFileExtension = ".before-nix-home-manager";
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = baseSpecialArgs;
@@ -170,9 +173,6 @@ in {
   flake-file.inputs = {
     disko = {
       url = "github:nix-community/disko";
-    };
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
     };
     stock-keeper = {
       inputs.nixpkgs.follows = "nixpkgs";

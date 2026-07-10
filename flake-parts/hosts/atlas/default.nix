@@ -4,9 +4,12 @@
   lib,
   ...
 }:
-{
+let
+  autoSyncSecrets = ../../secrets/atlas/auto-sync-update.sops.yaml;
+  matrixSecrets = ../../secrets/atlas/matrix.sops.yaml;
+in {
   imports = [
-    ./hardware.nix
+    ./_hardware-configuration.nix
     ./minecraft.nix
     ./mastodon.nix
     ./monitoring.nix
@@ -72,48 +75,81 @@
     wheelNeedsPassword = false;
   };
 
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
   security.acme.acceptTerms = true;
   security.acme.defaults.email = "lisa@scheers.tech";
 
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 22 ];
 
-  sops.secrets."auto-sync-update-env" = {
-    sopsFile = ../../../secrets/auto-sync-update.env;
-    format = "dotenv";
+  sops.secrets = {
+    "auto-sync/repository-url" = {
+      sopsFile = autoSyncSecrets;
+      key = "git/repository_url";
+    };
+    "auto-sync/git-username" = {
+      sopsFile = autoSyncSecrets;
+      key = "git/username";
+    };
+    "auto-sync/git-token" = {
+      sopsFile = autoSyncSecrets;
+      key = "git/token";
+    };
+    "auto-sync/smtp-url" = {
+      sopsFile = autoSyncSecrets;
+      key = "smtp/url";
+    };
+    "auto-sync/smtp-username" = {
+      sopsFile = autoSyncSecrets;
+      key = "smtp/username";
+    };
+    "auto-sync/smtp-password" = {
+      sopsFile = autoSyncSecrets;
+      key = "smtp/password";
+    };
+    "auto-sync/smtp-from" = {
+      sopsFile = autoSyncSecrets;
+      key = "smtp/from";
+    };
+    "matrix-registration-secret" = {
+      sopsFile = matrixSecrets;
+      key = "registration_secret";
+      owner = "matrix-synapse";
+      group = "matrix-synapse";
+      mode = "0400";
+      restartUnits = [ "matrix-synapse.service" ];
+    };
+    "matrix-turn-secret" = {
+      sopsFile = matrixSecrets;
+      key = "turn_secret";
+      owner = "root";
+      group = "matrix-secrets";
+      mode = "0440";
+      restartUnits = [
+        "coturn.service"
+        "matrix-synapse.service"
+      ];
+    };
+  };
+
+  sops.templates."auto-sync-update.env" = {
     owner = "root";
     group = "root";
     mode = "0400";
-  };
-
-  sops.secrets."matrix-registration-secret" = {
-    sopsFile = ../../../secrets/matrix.json;
-    format = "json";
-    key = "matrix_registration_secret";
-    owner = "matrix-synapse";
-    group = "matrix-synapse";
-    mode = "0400";
-    restartUnits = [ "matrix-synapse.service" ];
-  };
-
-  sops.secrets."matrix-turn-secret" = {
-    sopsFile = ../../../secrets/matrix.json;
-    format = "json";
-    key = "matrix_turn_secret";
-    owner = "root";
-    group = "matrix-secrets";
-    mode = "0440";
-    restartUnits = [
-      "coturn.service"
-      "matrix-synapse.service"
-    ];
+    content = ''
+      AUTO_SYNC_GIT_REPOSITORY_URL=${config.sops.placeholder."auto-sync/repository-url"}
+      AUTO_SYNC_GIT_USERNAME=${config.sops.placeholder."auto-sync/git-username"}
+      AUTO_SYNC_GIT_TOKEN=${config.sops.placeholder."auto-sync/git-token"}
+      AUTO_SYNC_SMTP_URL=${config.sops.placeholder."auto-sync/smtp-url"}
+      AUTO_SYNC_SMTP_USERNAME=${config.sops.placeholder."auto-sync/smtp-username"}
+      AUTO_SYNC_SMTP_PASSWORD=${config.sops.placeholder."auto-sync/smtp-password"}
+      AUTO_SYNC_SMTP_FROM=${config.sops.placeholder."auto-sync/smtp-from"}
+    '';
+    restartUnits = [ "nix-auto-sync-update.service" ];
   };
 
   services.autoSyncUpdate = {
     enable = true;
     flakeHost = "atlas";
-    environmentFile = config.sops.secrets."auto-sync-update-env".path;
+    environmentFile = config.sops.templates."auto-sync-update.env".path;
   };
 
   matrix = {

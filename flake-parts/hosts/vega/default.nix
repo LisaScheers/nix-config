@@ -1,6 +1,7 @@
 {...}: {
   imports = [
     ./nix.nix
+    ./launchd.nix
     ./networking.nix
     ./homebrew.nix
     ./comicCodeNerdFont.nix

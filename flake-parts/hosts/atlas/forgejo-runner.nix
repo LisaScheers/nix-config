@@ -1,4 +1,6 @@
-{config, ...}: {
+{config, ...}: let
+  secretsFile = ../../secrets/atlas/forgejo-runner.sops.yaml;
+in {
   virtualisation.docker.enable = true;
 
   services.forgejo-runner.instances.codeberg = {
@@ -6,7 +8,7 @@
     name = "matrix.bylisa.dev";
     url = "https://codeberg.org/";
     uuid = "50b78075-8f82-49eb-94c8-ca2e0539b18a";
-    tokenEnvironmentFile = config.sops.secrets.forgejo-runner-token.path;
+    tokenEnvironmentFile = config.sops.templates."forgejo-runner.env".path;
     labels = [
       "docker:docker://node:22-bookworm"
       "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-22.04"
@@ -15,9 +17,15 @@
     ];
   };
 
-  sops.secrets.forgejo-runner-token = {
-    sopsFile = ../../../secrets/forgejo-runner-token.env;
-    format = "dotenv";
-    key = "";
+  sops.secrets."forgejo-runner/token" = {
+    sopsFile = secretsFile;
+    key = "token";
+  };
+
+  sops.templates."forgejo-runner.env" = {
+    content = ''
+      TOKEN=${config.sops.placeholder."forgejo-runner/token"}
+    '';
+    restartUnits = [ "forgejo-runner-codeberg.service" ];
   };
 }

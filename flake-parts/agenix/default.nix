@@ -40,7 +40,7 @@
   };
 
   config = {
-    secrets.pubkeys = (import config.agenix.pubkeysFile) // config.agenix.extraPubkeys;
+    secrets.pubkeys = (import config.secrets.pubkeysFile) // config.secrets.extraPubkeys;
 
     flake.nixosModules.security_agenix = {
       config,

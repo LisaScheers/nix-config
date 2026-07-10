@@ -3,6 +3,8 @@
   pkgs,
   ...
 }: let
+  authentikSecrets = ../../secrets/atlas/authentik.sops.yaml;
+  grafanaSecrets = ../../secrets/shared/grafana-authentik.sops.yaml;
   grafanaBlueprint = pkgs.writeText "authentik-grafana-blueprint.yaml" ''
     version: 1
 
@@ -44,7 +46,7 @@
 in {
   services.authentik = {
     enable = true;
-    environmentFile = "/run/secrets/authentik-env";
+    environmentFile = config.sops.templates."authentik.env".path;
 
     settings = {
       email = {
@@ -66,18 +68,52 @@ in {
     };
   };
 
-  sops.secrets."authentik-env" = {
-    sopsFile = ../../../secrets/authentik.env;
-    owner = "root";
-    group = "root";
-    format = "dotenv";
+  sops.secrets = {
+    "authentik/secret-key" = {
+      sopsFile = authentikSecrets;
+      key = "secret_key";
+    };
+    "authentik/email-username" = {
+      sopsFile = authentikSecrets;
+      key = "email/username";
+    };
+    "authentik/email-password" = {
+      sopsFile = authentikSecrets;
+      key = "email/password";
+    };
+    "authentik/ldap-token" = {
+      sopsFile = authentikSecrets;
+      key = "ldap_outpost/token";
+    };
+    "grafana-authentik-client-secret" = {
+      sopsFile = grafanaSecrets;
+      key = "client_secret";
+    };
   };
 
-  sops.secrets."authentik-ldap-outpost-env" = {
-    sopsFile = ../../../secrets/authentik-ldap-outpost.env;
+  sops.templates."authentik.env" = {
     owner = "root";
     group = "root";
-    format = "dotenv";
+    content = ''
+      AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
+      AUTHENTIK_EMAIL__USERNAME=${config.sops.placeholder."authentik/email-username"}
+      AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."authentik/email-password"}
+      GRAFANA_CLIENT_SECRET=${config.sops.placeholder."grafana-authentik-client-secret"}
+    '';
+    restartUnits = [
+      "authentik.service"
+      "authentik-worker.service"
+      "authentik-grafana-blueprint.service"
+    ];
+  };
+
+  sops.templates."authentik-ldap-outpost.env" = {
+    owner = "root";
+    group = "root";
+    content = ''
+      AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/ldap-token"}
+    '';
+    restartUnits = [ "docker-authentik-ldap-outpost.service" ];
   };
 
   virtualisation.oci-containers.backend = "docker";
@@ -89,7 +125,7 @@ in {
       AUTHENTIK_INSECURE = "false";
     };
     environmentFiles = [
-      config.sops.secrets."authentik-ldap-outpost-env".path
+      config.sops.templates."authentik-ldap-outpost.env".path
     ];
     ports = [
       "636:6636"
@@ -108,7 +144,7 @@ in {
       User = "authentik";
       StateDirectory = "authentik";
       WorkingDirectory = "%S/authentik";
-      EnvironmentFile = [config.sops.secrets."authentik-env".path];
+      EnvironmentFile = [config.sops.templates."authentik.env".path];
       Environment = [
         "AUTHENTIK_CONFIG=/etc/authentik/config.yml"
       ];

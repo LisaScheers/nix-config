@@ -20,10 +20,15 @@
   };
 in {
   sops.secrets."1password-connect-credentials" = {
-    key = "data/1password-connect-credentials";
+    sopsFile = ../../secrets/nook/onepassword-connect.sops.yaml;
+    key = "credentials_json";
     owner = "root";
     group = "nscd";
     mode = "0440";
+    restartUnits = [
+      "podman-op-connect-api.service"
+      "podman-op-connect-sync.service"
+    ];
   };
 
   systemd.tmpfiles.rules = [

@@ -69,7 +69,10 @@
       url = "github:LisaScheers/shop-empty-track/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     stock-keeper = {
       url = "github:LisaScheers/stock-keeper/main";
       inputs.nixpkgs.follows = "nixpkgs";

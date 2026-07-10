@@ -1,11 +1,13 @@
-{
+{config, ...}: let
+  secretsFile = ../../secrets/atlas/shop-empty-track.sops.yaml;
+in {
   services.shop-empty-track = {
     enable = true;
     port = 3001;
     shopifyApiKey = "placeholder-will-be-overridden-by-env-file";
     shopifyApiSecret = "placeholder-will-be-overridden-by-env-file";
     shopifyAppUrl = "https://shop-empty-track.bylisa.dev";
-    environmentFiles = [ "/run/secrets/shop-empty-track-env" ];
+    environmentFiles = [ config.sops.templates."shop-empty-track.env".path ];
 
     nginx = {
       enable = true;
@@ -15,10 +17,24 @@
     };
   };
 
-  sops.secrets."shop-empty-track-env" = {
-    sopsFile = ../../../secrets/shop-empty-track.env;
+  sops.secrets = {
+    "shop-empty-track/shopify-api-key" = {
+      sopsFile = secretsFile;
+      key = "shopify/api_key";
+    };
+    "shop-empty-track/shopify-api-secret" = {
+      sopsFile = secretsFile;
+      key = "shopify/api_secret";
+    };
+  };
+
+  sops.templates."shop-empty-track.env" = {
     owner = "shop-empty-track";
     group = "shop-empty-track";
-    format = "dotenv";
+    content = ''
+      SHOPIFY_API_KEY=${config.sops.placeholder."shop-empty-track/shopify-api-key"}
+      SHOPIFY_API_SECRET=${config.sops.placeholder."shop-empty-track/shopify-api-secret"}
+    '';
+    restartUnits = [ "shop-empty-track.service" ];
   };
 }

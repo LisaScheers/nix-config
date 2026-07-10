@@ -4,17 +4,32 @@
   pkgs,
   ...
 }: let
+  secretsFile = ../../secrets/nook/gotify.sops.yaml;
   domain = "gotify.bylisa.dev";
   gotifyAddress = "127.0.0.1";
   gotifyPort = 8097;
   proxyErrorPage = import ./_nginx-error-page.nix {inherit pkgs;};
 in {
-  sops.secrets."gotify-env" = {
-    sopsFile = ../../../secrets/gotify.env;
-    format = "dotenv";
+  sops.secrets = {
+    "gotify/default-user-name" = {
+      sopsFile = secretsFile;
+      key = "default_user/name";
+    };
+    "gotify/default-user-password" = {
+      sopsFile = secretsFile;
+      key = "default_user/password";
+    };
+  };
+
+  sops.templates."gotify.env" = {
     owner = "root";
     group = "root";
     mode = "0400";
+    content = ''
+      GOTIFY_DEFAULTUSER_NAME=${config.sops.placeholder."gotify/default-user-name"}
+      GOTIFY_DEFAULTUSER_PASS=${config.sops.placeholder."gotify/default-user-password"}
+    '';
+    restartUnits = [ "gotify-server.service" ];
   };
 
   services.cloudflare-dyndns.domains = [domain];
@@ -40,7 +55,7 @@ in {
       GOTIFY_SERVER_STREAM_ALLOWEDORIGINS = ''["https://${domain}"]'';
       GOTIFY_UPLOADEDIMAGESDIR = "data/images";
     };
-    environmentFiles = [config.sops.secrets."gotify-env".path];
+    environmentFiles = [config.sops.templates."gotify.env".path];
   };
 
   services.nginx = {
@@ -59,10 +74,5 @@ in {
         };
       }
     ];
-  };
-
-  systemd.services.gotify-server = {
-    after = ["sops-install-secrets.service"];
-    requires = ["sops-install-secrets.service"];
   };
 }

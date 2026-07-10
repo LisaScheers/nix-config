@@ -492,17 +492,21 @@ in {
   environment.etc."alloy/config.alloy".source = alloyConfig;
 
   sops.secrets."monitoring-otlp-htpasswd" = {
-    key = "data/monitoring-otlp-htpasswd";
+    sopsFile = ../../secrets/nook/monitoring.sops.yaml;
+    key = "otlp_htpasswd";
     owner = "nginx";
     group = "nginx";
     mode = "0440";
+    reloadUnits = [ "nginx.service" ];
   };
 
   sops.secrets."grafana-authentik-client-secret" = {
-    key = "data/grafana-authentik-client-secret";
+    sopsFile = ../../secrets/shared/grafana-authentik.sops.yaml;
+    key = "client_secret";
     owner = "grafana";
     group = "grafana";
     mode = "0440";
+    restartUnits = [ "grafana.service" ];
   };
 
   systemd.tmpfiles.rules = [

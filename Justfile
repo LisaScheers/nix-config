@@ -44,27 +44,13 @@ nixos-install-from-installer-password target host="home-server":
 nixos-install-from-installer-key target identity="/tmp/home-server-installer-ed25519" host="home-server":
     nix develop --command nixos-anywhere -i "{{identity}}" --phases disko,install,reboot --generate-hardware-config nixos-generate-config ./modules/hosts/"{{host}}"/_hardware-configuration.nix --flake .#"{{host}}" --target-host "{{target}}"
 
-# Initialize secrets file with sops (run once before first use)
-sops-init file="secrets/secrets.yaml":
-    @echo "Initializing encrypted secrets file..."
-    @if [ ! -f "{{file}}" ] || [ ! -s "{{file}}" ]; then \
-        echo "{}" > "{{file}}"; \
-    fi
-    @sops --config .sops.yaml --encrypt --in-place "{{file}}"
-    @echo "Secrets file initialized. You can now edit it with: just sops"
+# Edit or create an agenix secret. Paths are relative to flake-parts/agenix.
+secret-edit file identity="/Users/lisa/.config/sops/age/keys.txt":
+    cd flake-parts/agenix && RULES=./secrets.nix agenix --edit "{{file}}" --identity "{{identity}}"
 
-# Edit secrets using sops (auto-initializes if needed)
-sops file="secrets/secrets.yaml":
-    # Check if file is encrypted by trying to decrypt it
-    @if ! sops --config .sops.yaml --decrypt "{{file}}" > /dev/null 2>&1; then \
-        echo "File not encrypted yet. Initializing..."; \
-        if [ ! -f "{{file}}" ] || [ ! -s "{{file}}" ]; then \
-            echo "{}" > "{{file}}"; \
-        fi; \
-        sops --config .sops.yaml --encrypt --in-place "{{file}}"; \
-        echo "File initialized."; \
-    fi
-    sops --config .sops.yaml edit "{{file}}"
+# Re-encrypt all agenix secrets after changing recipients in secrets.nix.
+secret-rekey identity="/Users/lisa/.config/sops/age/keys.txt":
+    cd flake-parts/agenix && RULES=./secrets.nix agenix --rekey --identity "{{identity}}"
 
 # Check flake
 check:
@@ -129,10 +115,10 @@ darwin-build host="Lisas-private-MacBook-Pro":
 nixos-build host="home-server":
     nixos-rebuild build --flake .#"{{host}}"
 
-# Generate age key for sops (if needed)
+# Generate an age identity for agenix (if needed).
 age-keygen:
-    @echo "Generating age key for sops..."
+    @echo "Generating age identity for agenix..."
     @mkdir -p ~/.config/sops/age
     @age-keygen -o ~/.config/sops/age/keys.txt
     @echo "Age key generated at ~/.config/sops/age/keys.txt"
-    @echo "Add the public key to .sops.yaml"
+    @echo "Add the public key to flake-parts/agenix/pubkeys.nix and the relevant rules in flake-parts/agenix/secrets.nix"
