@@ -1,4 +1,6 @@
 {config, ...}: {
+  # cloudflare-dyndns imports this root-only source through systemd
+  # LoadCredential before entering its DynamicUser sandbox.
   age.secrets.cloudflare-dns-api-token = {
     file = ../../agenix/secrets/nook/cloudflare-dns-api-token.age;
     owner = "root";
