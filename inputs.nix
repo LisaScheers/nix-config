@@ -43,10 +43,11 @@
   };
   sops-nix = {
     inputs.nixpkgs.follows = "nixpkgs";
-    url = "https://flakehub.com/f/Mic92/sops-nix/0.1.*";
+    url = "github:Mic92/sops-nix";
   };
   stock-keeper = {
     inputs.nixpkgs.follows = "nixpkgs";
     url = "github:LisaScheers/stock-keeper/main";
   };
+  systems.url = "github:nix-systems/default";
 }

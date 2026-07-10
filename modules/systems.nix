@@ -1,3 +1,0 @@
-{localConfig, ...}: {
-  systems = localConfig.supportedSystems;
-}
