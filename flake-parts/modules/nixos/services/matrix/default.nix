@@ -1,10 +1,8 @@
-localFlake:
-{
+localFlake: {
   lib,
   config,
   ...
-}:
-{
+}: {
   imports = [
     ./synapse.nix
     ./coturn.nix
@@ -19,7 +17,7 @@ localFlake:
     };
 
     rootDomain = mkOption {
-      type = types.str;
+      type = types.nullOr types.str;
       default = null;
       description = "The root domain for the matrix server";
     };
@@ -31,7 +29,7 @@ localFlake:
     };
 
     turnRealm = mkOption {
-      type = types.str;
+      type = types.nullOr types.str;
       default = null;
       description = "The realm for the turn server";
     };
@@ -49,6 +47,14 @@ localFlake:
   };
 
   config.assertions = lib.mkIf config.matrix.enable [
+    {
+      assertion = config.matrix.rootDomain != null;
+      message = "matrix.rootDomain must be set when Matrix is enabled";
+    }
+    {
+      assertion = config.matrix.turnRealm != null;
+      message = "matrix.turnRealm must be set when Matrix is enabled";
+    }
     {
       assertion = config.matrix.registrationSecretFile != null;
       message = "matrix.registrationSecretFile must be set when Matrix is enabled";

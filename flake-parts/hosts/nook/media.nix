@@ -193,13 +193,13 @@ in {
 
   services.radarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     group = "media";
     dataDir = "${mediaRoot}/radarr";
     settings = {
       update.mechanism = "external";
       server = {
-        bindaddress = "*";
+        bindaddress = "127.0.0.1";
         port = 7878;
       };
     };
@@ -207,13 +207,13 @@ in {
 
   services.sonarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     group = "media";
     dataDir = "${mediaRoot}/sonarr";
     settings = {
       update.mechanism = "external";
       server = {
-        bindaddress = "*";
+        bindaddress = "127.0.0.1";
         port = 8989;
       };
     };
@@ -221,12 +221,12 @@ in {
 
   services.prowlarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     dataDir = "${mediaRoot}/prowlarr";
     settings = {
       update.mechanism = "external";
       server = {
-        bindaddress = "*";
+        bindaddress = "127.0.0.1";
         port = 9696;
       };
     };

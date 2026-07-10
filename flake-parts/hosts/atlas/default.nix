@@ -3,11 +3,7 @@
   pkgs,
   lib,
   ...
-}:
-let
-  autoSyncSecrets = ../../secrets/atlas/auto-sync-update.sops.yaml;
-  matrixSecrets = ../../secrets/atlas/matrix.sops.yaml;
-in {
+}: {
   imports = [
     ./_hardware-configuration.nix
     ./minecraft.nix
@@ -51,7 +47,7 @@ in {
   };
   services.tailscale = {
     enable = true;
-    extraSetFlags = [ "--accept-dns=false" ];
+    extraSetFlags = ["--accept-dns=false"];
   };
 
   users.users = {
@@ -60,15 +56,15 @@ in {
       hashedPassword = "!";
       isNormalUser = true;
       description = "Lisa user";
-      extraGroups = [ "wheel" ];
+      extraGroups = ["wheel"];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICFzIIn0D0sH6Pual0iAlciIDZo6T0qlWWCgRpQhq8U3"
       ];
     };
-    matrix-synapse.extraGroups = [ "matrix-secrets" ];
-    turnserver.extraGroups = [ "matrix-secrets" ];
+    matrix-synapse.extraGroups = ["matrix-secrets"];
+    turnserver.extraGroups = ["matrix-secrets"];
   };
-  users.groups.matrix-secrets = { };
+  users.groups.matrix-secrets = {};
 
   security.sudo = {
     enable = true;
@@ -78,78 +74,33 @@ in {
   security.acme.acceptTerms = true;
   security.acme.defaults.email = "lisa@scheers.tech";
 
-  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 22 ];
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [22];
 
-  sops.secrets = {
-    "auto-sync/repository-url" = {
-      sopsFile = autoSyncSecrets;
-      key = "git/repository_url";
+  age.secrets = {
+    auto-sync-update-env = {
+      file = ../../agenix/secrets/atlas/auto-sync-update-env.age;
+      owner = "root";
+      group = "root";
+      mode = "0400";
     };
-    "auto-sync/git-username" = {
-      sopsFile = autoSyncSecrets;
-      key = "git/username";
-    };
-    "auto-sync/git-token" = {
-      sopsFile = autoSyncSecrets;
-      key = "git/token";
-    };
-    "auto-sync/smtp-url" = {
-      sopsFile = autoSyncSecrets;
-      key = "smtp/url";
-    };
-    "auto-sync/smtp-username" = {
-      sopsFile = autoSyncSecrets;
-      key = "smtp/username";
-    };
-    "auto-sync/smtp-password" = {
-      sopsFile = autoSyncSecrets;
-      key = "smtp/password";
-    };
-    "auto-sync/smtp-from" = {
-      sopsFile = autoSyncSecrets;
-      key = "smtp/from";
-    };
-    "matrix-registration-secret" = {
-      sopsFile = matrixSecrets;
-      key = "registration_secret";
+    matrix-registration-secret = {
+      file = ../../agenix/secrets/atlas/matrix-registration-secret.age;
       owner = "matrix-synapse";
       group = "matrix-synapse";
       mode = "0400";
-      restartUnits = [ "matrix-synapse.service" ];
     };
-    "matrix-turn-secret" = {
-      sopsFile = matrixSecrets;
-      key = "turn_secret";
+    matrix-turn-secret = {
+      file = ../../agenix/secrets/atlas/matrix-turn-secret.age;
       owner = "root";
       group = "matrix-secrets";
       mode = "0440";
-      restartUnits = [
-        "coturn.service"
-        "matrix-synapse.service"
-      ];
     };
-  };
-
-  sops.templates."auto-sync-update.env" = {
-    owner = "root";
-    group = "root";
-    mode = "0400";
-    content = ''
-      AUTO_SYNC_GIT_REPOSITORY_URL=${config.sops.placeholder."auto-sync/repository-url"}
-      AUTO_SYNC_GIT_USERNAME=${config.sops.placeholder."auto-sync/git-username"}
-      AUTO_SYNC_GIT_TOKEN=${config.sops.placeholder."auto-sync/git-token"}
-      AUTO_SYNC_SMTP_URL=${config.sops.placeholder."auto-sync/smtp-url"}
-      AUTO_SYNC_SMTP_USERNAME=${config.sops.placeholder."auto-sync/smtp-username"}
-      AUTO_SYNC_SMTP_PASSWORD=${config.sops.placeholder."auto-sync/smtp-password"}
-      AUTO_SYNC_SMTP_FROM=${config.sops.placeholder."auto-sync/smtp-from"}
-    '';
-    restartUnits = [ "nix-auto-sync-update.service" ];
   };
 
   services.autoSyncUpdate = {
     enable = true;
     flakeHost = "atlas";
-    environmentFile = config.sops.templates."auto-sync-update.env".path;
+    environmentFile = config.age.secrets.auto-sync-update-env.path;
   };
 
   matrix = {
@@ -157,8 +108,17 @@ in {
     rootDomain = "bylisa.dev";
     subDomain = "matrix";
     turnRealm = "turn.bylisa.dev";
-    registrationSecretFile = config.sops.secrets."matrix-registration-secret".path;
-    turnSecretFile = config.sops.secrets."matrix-turn-secret".path;
+    registrationSecretFile = config.age.secrets.matrix-registration-secret.path;
+    turnSecretFile = config.age.secrets.matrix-turn-secret.path;
+  };
+
+  systemd.services = {
+    nix-auto-sync-update.restartTriggers = [../../agenix/secrets/atlas/auto-sync-update-env.age];
+    matrix-synapse.restartTriggers = [
+      ../../agenix/secrets/atlas/matrix-registration-secret.age
+      ../../agenix/secrets/atlas/matrix-turn-secret.age
+    ];
+    coturn.restartTriggers = [../../agenix/secrets/atlas/matrix-turn-secret.age];
   };
 
   system.stateVersion = "25.05";

@@ -3,8 +3,7 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   cfg = config.matrix;
   fqdn = "${cfg.subDomain}.${cfg.rootDomain}";
   baseUrl = "https://${fqdn}";
@@ -27,8 +26,7 @@ let
     add_header Access-Control-Allow-Origin *;
     return 200 '${builtins.toJSON data}';
   '';
-in
-{
+in {
   networking = lib.mkIf (cfg.enable) {
     firewall.allowedTCPPorts = [
       80
@@ -50,8 +48,6 @@ in
       {
         name = "matrix-synapse";
         ensureClauses = {
-          createdb = true;
-          createrole = true;
           login = true;
         };
         ensureDBOwnership = true;
@@ -120,7 +116,7 @@ in
       "element.${config.networking.domain}" = {
         enableACME = true;
         forceSSL = true;
-        serverAliases = [ "element.${config.networking.domain}" ];
+        serverAliases = ["element.${config.networking.domain}"];
 
         root = pkgs.element-web.override {
           conf = {
@@ -142,7 +138,7 @@ in
     settings.listeners = [
       {
         port = 8008;
-        bind_addresses = [ "::1" ];
+        bind_addresses = ["::1"];
         type = "http";
         tls = false;
         x_forwarded = true;

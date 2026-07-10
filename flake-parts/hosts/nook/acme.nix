@@ -1,15 +1,14 @@
-{config, ...}: let
-  secretsFile = ../../secrets/nook/cloudflare-acme.sops.yaml;
-in {
-  sops.secrets."cloudflare-dns-api-token" = {
-    sopsFile = secretsFile;
-    key = "dns_api_token";
-    restartUnits = [ "cloudflare-dyndns.service" ];
+{config, ...}: {
+  age.secrets.cloudflare-dns-api-token = {
+    file = ../../agenix/secrets/nook/cloudflare-dns-api-token.age;
+    owner = "root";
+    group = "root";
+    mode = "0400";
   };
 
   services.cloudflare-dyndns = {
     enable = true;
-    apiTokenFile = config.sops.secrets."cloudflare-dns-api-token".path;
+    apiTokenFile = config.age.secrets.cloudflare-dns-api-token.path;
     domains = [
       "grafana.bylisa.dev"
       "grafana.local.bylisa.dev"
@@ -44,7 +43,9 @@ in {
     defaults = {
       dnsProvider = "cloudflare";
       credentialFiles."CF_DNS_API_TOKEN_FILE" =
-        config.sops.secrets."cloudflare-dns-api-token".path;
+        config.age.secrets.cloudflare-dns-api-token.path;
     };
   };
+
+  systemd.services.cloudflare-dyndns.restartTriggers = [../../agenix/secrets/nook/cloudflare-dns-api-token.age];
 }

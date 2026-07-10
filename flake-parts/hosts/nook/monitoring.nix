@@ -491,22 +491,19 @@
 in {
   environment.etc."alloy/config.alloy".source = alloyConfig;
 
-  sops.secrets."monitoring-otlp-htpasswd" = {
-    sopsFile = ../../secrets/nook/monitoring.sops.yaml;
-    key = "otlp_htpasswd";
-    owner = "nginx";
-    group = "nginx";
-    mode = "0440";
-    reloadUnits = [ "nginx.service" ];
-  };
-
-  sops.secrets."grafana-authentik-client-secret" = {
-    sopsFile = ../../secrets/shared/grafana-authentik.sops.yaml;
-    key = "client_secret";
-    owner = "grafana";
-    group = "grafana";
-    mode = "0440";
-    restartUnits = [ "grafana.service" ];
+  age.secrets = {
+    monitoring-otlp-htpasswd = {
+      file = ../../agenix/secrets/nook/monitoring-otlp-htpasswd.age;
+      owner = "nginx";
+      group = "nginx";
+      mode = "0440";
+    };
+    grafana-authentik-client-secret = {
+      file = ../../agenix/secrets/nook/grafana-authentik-client-secret.age;
+      owner = "grafana";
+      group = "grafana";
+      mode = "0440";
+    };
   };
 
   systemd.tmpfiles.rules = [
@@ -559,7 +556,7 @@ in {
         name = "authentik";
         allow_sign_up = true;
         client_id = authentikGrafanaClientId;
-        client_secret = "$__file{${config.sops.secrets."grafana-authentik-client-secret".path}}";
+        client_secret = "$__file{${config.age.secrets.grafana-authentik-client-secret.path}}";
         scopes = "openid email profile";
         auth_url = "https://${authentikDomain}/application/o/authorize/";
         token_url = "https://${authentikDomain}/application/o/token/";
@@ -906,7 +903,7 @@ in {
           deny all;
 
           auth_basic "OTLP";
-          auth_basic_user_file ${config.sops.secrets."monitoring-otlp-htpasswd".path};
+          auth_basic_user_file ${config.age.secrets.monitoring-otlp-htpasswd.path};
 
           client_max_body_size 25m;
           proxy_http_version 1.1;
@@ -916,6 +913,8 @@ in {
   ];
 
   systemd.services = {
+    nginx.reloadTriggers = [../../agenix/secrets/nook/monitoring-otlp-htpasswd.age];
+
     alloy = {
       after = [
         "loki.service"
@@ -933,6 +932,7 @@ in {
     };
 
     grafana = {
+      restartTriggers = [../../agenix/secrets/nook/grafana-authentik-client-secret.age];
       after = [
         "loki.service"
         "mimir.service"

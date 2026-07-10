@@ -343,22 +343,4 @@ in {
       MemoryMax = "16G";
     };
   };
-
-  # bluemap
-  services.nginx.virtualHosts = {
-    # ssl
-
-    "map.bylisa.dev" = {
-      enableACME = true;
-      forceSSL = true;
-      extraConfig = ''
-        gzip_static always;
-      '';
-      locations = {
-        "/" = {
-          root = "${atm11Root}/bluemap/web/";
-        };
-      };
-    };
-  };
 }

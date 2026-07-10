@@ -1,8 +1,5 @@
-{
-  config,
-  ...
-}: let
-  nookBuilderKeyPath = config.sops.secrets."nook-builder-ssh-key".path;
+{config, ...}: let
+  nookBuilderKeyPath = config.age.secrets.nook-builder-ssh-key.path;
   nixGithubAccessTokenSystemPath = "/etc/nix/github-access-token.conf";
   orbStackSshDir = "/Users/lisa/.orbstack/ssh";
 in {
@@ -40,39 +37,28 @@ in {
     '';
   };
 
-  sops.secrets = {
-    "nook-builder-ssh-key" = {
-      sopsFile = ../../secrets/vega/nix.sops.yaml;
-      key = "builder_ssh_private_key";
+  age.secrets = {
+    nook-builder-ssh-key = {
+      file = ../../agenix/secrets/vega/home-server-builder-ssh-key.age;
       path = "/etc/nix/nook-builder";
       owner = "root";
       group = "staff";
       mode = "0600";
     };
-    "nix-github-access-token" = {
-      sopsFile = ../../secrets/vega/nix.sops.yaml;
-      key = "github_access_token";
+    nix-github-access-token-system = {
+      file = ../../agenix/secrets/vega/nix-github-access-token-conf.age;
+      path = nixGithubAccessTokenSystemPath;
+      owner = "root";
+      group = "staff";
+      mode = "0440";
     };
-  };
-
-  sops.templates."nix-github-access-token-system.conf" = {
-    path = nixGithubAccessTokenSystemPath;
-    owner = "root";
-    group = "staff";
-    mode = "0400";
-    content = ''
-      access-tokens = github.com=${config.sops.placeholder."nix-github-access-token"}
-    '';
-  };
-
-  sops.templates."nix-github-access-token-user.conf" = {
-    path = "/run/secrets/nix/user-github-access-token.conf";
-    owner = "lisa";
-    group = "staff";
-    mode = "0400";
-    content = ''
-      access-tokens = github.com=${config.sops.placeholder."nix-github-access-token"}
-    '';
+    nix-github-access-token-user = {
+      file = ../../agenix/secrets/vega/nix-github-access-token-conf.age;
+      path = "/run/secrets/nix/user-github-access-token.conf";
+      owner = "lisa";
+      group = "staff";
+      mode = "0400";
+    };
   };
 
   programs.ssh = {

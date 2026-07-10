@@ -41,6 +41,11 @@ in {
   };
   hardware.enableRedistributableFirmware = true;
 
+  services.udev.extraRules = ''
+    SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="8087", ATTR{idProduct}=="0029", SYMLINK+="home-assistant/intel-bluetooth"
+    SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="2357", ATTR{idProduct}=="0604", ATTR{serial}=="E848B8C82000", SYMLINK+="home-assistant/tp-link-ub500"
+  '';
+
   networking.firewall.allowedTCPPorts = [
     80
     443
@@ -78,8 +83,8 @@ in {
           NET_RAW = true;
         };
         devices = [
-          "/dev/bus/usb/001/002:/dev/bus/usb/001/002"
-          "/dev/bus/usb/001/005:/dev/bus/usb/001/005"
+          "/dev/home-assistant/intel-bluetooth:/dev/home-assistant/intel-bluetooth"
+          "/dev/home-assistant/tp-link-ub500:/dev/home-assistant/tp-link-ub500"
         ];
         environment = {
           OTEL_EXPORTER_OTLP_ENDPOINT = "http://127.0.0.1:4318";

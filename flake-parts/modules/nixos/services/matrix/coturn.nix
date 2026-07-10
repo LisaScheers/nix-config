@@ -2,11 +2,9 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   cfg = config.matrix;
-in
-{
+in {
   # enable coturn
   services = lib.mkIf (cfg.enable) {
     coturn = rec {
@@ -67,22 +65,21 @@ in
   };
   # open the firewall
   networking = lib.mkIf (cfg.enable) {
-    firewall =
-      let
-        range = with config.services.coturn; [
-          {
-            from = min-port;
-            to = max-port;
-          }
-        ];
-      in
-      {
-        allowedUDPPortRanges = range;
-        allowedUDPPorts = [
-          3478
-          5349
-        ];
-      };
+    firewall = let
+      range = with config.services.coturn; [
+        {
+          from = min-port;
+          to = max-port;
+        }
+      ];
+    in {
+      allowedTCPPorts = [3478];
+      allowedUDPPortRanges = range;
+      allowedUDPPorts = [
+        3478
+        5349
+      ];
+    };
   };
   # get a certificate
   security = lib.mkIf (cfg.enable) {

@@ -4,7 +4,6 @@
   pkgs,
   ...
 }: let
-  secretsFile = ../../secrets/atlas/monitoring.sops.yaml;
   instance = "matrix.bylisa.dev";
   otlpEndpoint = "https://grafana.bylisa.dev/otlp";
 
@@ -126,31 +125,16 @@
 in {
   environment.etc."alloy/config.alloy".source = alloyConfig;
 
-  sops.secrets = {
-    "monitoring/otlp-username" = {
-      sopsFile = secretsFile;
-      key = "otlp/username";
-    };
-    "monitoring/otlp-password" = {
-      sopsFile = secretsFile;
-      key = "otlp/password";
-    };
-  };
-
-  sops.templates."monitoring-otlp.env" = {
+  age.secrets.monitoring-otlp-env = {
+    file = ../../agenix/secrets/atlas/monitoring-otlp-env.age;
     owner = "root";
     group = "root";
     mode = "0400";
-    content = ''
-      OTLP_USERNAME=${config.sops.placeholder."monitoring/otlp-username"}
-      OTLP_PASSWORD=${config.sops.placeholder."monitoring/otlp-password"}
-    '';
-    restartUnits = [ "alloy.service" ];
   };
 
   services.alloy = {
     enable = true;
-    environmentFile = config.sops.templates."monitoring-otlp.env".path;
+    environmentFile = config.age.secrets.monitoring-otlp-env.path;
     extraFlags = [
       "--server.http.listen-addr=${alloyAddress}:${toString alloyPort}"
       "--disable-reporting"
@@ -201,6 +185,7 @@ in {
   };
 
   systemd.services = {
+    alloy.restartTriggers = [../../agenix/secrets/atlas/monitoring-otlp-env.age];
     alloy.after = [
       "cadvisor.service"
       "prometheus-nginx-exporter.service"

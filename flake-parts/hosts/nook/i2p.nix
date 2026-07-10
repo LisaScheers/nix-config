@@ -3,7 +3,6 @@
   pkgs,
   ...
 }: let
-  hostAddress = "192.168.111.2";
   consoleDomain = "i2p.local.bylisa.dev";
   consolePort = 7070;
   httpProxyPort = 4444;
@@ -15,8 +14,6 @@ in {
   networking.firewall = {
     allowedTCPPorts = [
       routerPort
-      httpProxyPort
-      socksProxyPort
     ];
     allowedUDPPorts = [routerPort];
   };
@@ -54,12 +51,12 @@ in {
       };
       httpProxy = {
         enable = true;
-        address = hostAddress;
+        address = "127.0.0.1";
         port = httpProxyPort;
       };
       socksProxy = {
         enable = true;
-        address = hostAddress;
+        address = "127.0.0.1";
         port = socksProxyPort;
       };
     };

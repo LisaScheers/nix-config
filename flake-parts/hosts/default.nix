@@ -32,6 +32,7 @@
       modules =
         [
           {
+            forge.security.agenix.enable = true;
             forge.security.sops.enable = true;
             nixpkgs.overlays = [config.flake.overlays.default] ++ extraOverlays;
             nixpkgs.config.allowUnfree = true;
@@ -39,6 +40,7 @@
           }
           inputs.disko.nixosModules.disko
           config.flake.nixosModules.security_sops
+          config.flake.nixosModules.security_agenix
           ./${hostName}
         ]
         ++ extraModules
@@ -91,6 +93,7 @@
       modules =
         [
           {
+            forge.security.agenix.enable = true;
             forge.security.sops.enable = true;
             nixpkgs.overlays = [config.flake.overlays.default] ++ extraOverlays;
             nixpkgs.config.allowUnfree = true;
@@ -98,6 +101,7 @@
           }
           inputs.nix-homebrew.darwinModules.nix-homebrew
           config.flake.darwinModules.security_sops
+          config.flake.darwinModules.security_agenix
 
           ./${hostName}
         ]

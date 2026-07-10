@@ -2,10 +2,7 @@
   config,
   pkgs,
   ...
-}:
-let
-  secretsFile = ../../secrets/atlas/stock-keeper.sops.yaml;
-in {
+}: {
   services.stock-keeper = {
     enable = true;
     package = pkgs.stock-keeper;
@@ -17,29 +14,17 @@ in {
     enableNginx = true;
     nginxHost = "stock-keeper.bylisa.dev";
     nginxEnableSSL = true;
-    environmentFile = config.sops.templates."stock-keeper.env".path;
+    environmentFile = config.age.secrets.stock-keeper-env.path;
   };
 
-  sops.secrets = {
-    "stock-keeper/shopify-api-key" = {
-      sopsFile = secretsFile;
-      key = "shopify/api_key";
-    };
-    "stock-keeper/shopify-api-secret" = {
-      sopsFile = secretsFile;
-      key = "shopify/api_secret";
-    };
-  };
-
-  sops.templates."stock-keeper.env" = {
+  age.secrets.stock-keeper-env = {
+    file = ../../agenix/secrets/atlas/stock-keeper-env.age;
     owner = "stock-keeper";
     group = "stock-keeper";
-    content = ''
-      SHOPIFY_API_KEY=${config.sops.placeholder."stock-keeper/shopify-api-key"}
-      SHOPIFY_API_SECRET=${config.sops.placeholder."stock-keeper/shopify-api-secret"}
-    '';
-    restartUnits = [ "stock-keeper.service" ];
+    mode = "0400";
   };
+
+  systemd.services.stock-keeper.restartTriggers = [../../agenix/secrets/atlas/stock-keeper-env.age];
 
   # Override nginx config to use wildcard certificate if available
   services.nginx.virtualHosts."stock-keeper.bylisa.dev" = {

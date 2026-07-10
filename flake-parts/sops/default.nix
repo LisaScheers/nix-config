@@ -1,59 +1,58 @@
 {
   inputs,
+  lib,
   ...
-}:
-{
-  flake.nixosModules.security_sops =
-    {
-      config,
-      lib,
-      ...
-    }:
-    let
-      cfg = config.forge.security.sops;
-    in
-    {
-      imports = [ inputs.sops-nix.nixosModules.sops ];
+}: {
+  options.flake.darwinModules = lib.mkOption {
+    type = with lib.types; lazyAttrsOf unspecified;
+    default = {};
+  };
 
-      options.forge.security.sops = {
-        enable = lib.mkEnableOption "sops-nix secret management";
+  config.flake.nixosModules.security_sops = {
+    config,
+    lib,
+    ...
+  }: let
+    cfg = config.forge.security.sops;
+  in {
+    imports = [inputs.sops-nix.nixosModules.sops];
 
-        ageSshKeyPaths = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ "/etc/ssh/ssh_host_ed25519_key" ];
-          description = "SSH private-key paths used as age identities at activation time.";
-        };
-      };
+    options.forge.security.sops = {
+      enable = lib.mkEnableOption "sops-nix secret management";
 
-      config = lib.mkIf cfg.enable {
-        sops.age.sshKeyPaths = lib.mkDefault cfg.ageSshKeyPaths;
+      ageSshKeyPaths = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = ["/etc/ssh/ssh_host_ed25519_key"];
+        description = "SSH private-key paths used as age identities at activation time.";
       };
     };
 
-  flake.darwinModules.security_sops =
-    {
-      config,
-      lib,
-      ...
-    }:
-    let
-      cfg = config.forge.security.sops;
-    in
-    {
-      imports = [ inputs.sops-nix.darwinModules.sops ];
+    config = lib.mkIf cfg.enable {
+      sops.age.sshKeyPaths = lib.mkDefault cfg.ageSshKeyPaths;
+    };
+  };
 
-      options.forge.security.sops = {
-        enable = lib.mkEnableOption "sops-nix secret management";
+  config.flake.darwinModules.security_sops = {
+    config,
+    lib,
+    ...
+  }: let
+    cfg = config.forge.security.sops;
+  in {
+    imports = [inputs.sops-nix.darwinModules.sops];
 
-        ageSshKeyPaths = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ "/etc/ssh/ssh_host_ed25519_key" ];
-          description = "SSH private-key paths used as age identities at activation time.";
-        };
-      };
+    options.forge.security.sops = {
+      enable = lib.mkEnableOption "sops-nix secret management";
 
-      config = lib.mkIf cfg.enable {
-        sops.age.sshKeyPaths = lib.mkDefault cfg.ageSshKeyPaths;
+      ageSshKeyPaths = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = ["/etc/ssh/ssh_host_ed25519_key"];
+        description = "SSH private-key paths used as age identities at activation time.";
       };
     };
+
+    config = lib.mkIf cfg.enable {
+      sops.age.sshKeyPaths = lib.mkDefault cfg.ageSshKeyPaths;
+    };
+  };
 }

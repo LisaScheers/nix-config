@@ -3,7 +3,8 @@
   pkgs,
   ...
 }: let
-  codexAlias = "nix run github:sadjow/codex-cli-nix -- --yolo";
+  codexAlias = "nix run github:sadjow/codex-cli-nix --";
+  codexYoloAlias = "nix run github:sadjow/codex-cli-nix -- --yolo";
   homeDirectory = config.home.homeDirectory;
   nomShellFunctions = ''
     nix() {
@@ -35,13 +36,16 @@ in {
     NIXPKGS_ALLOW_UNFREE = "1";
     EDITOR = "code --wait";
     VISUAL = "code --wait";
-    SSH_AUTH_SOCK = "${homeDirectory}/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+    SSH_AUTH_SOCK = "${homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   };
 
   programs.bash = {
     enable = true;
     enableCompletion = true;
-    shellAliases.codex = codexAlias;
+    shellAliases = {
+      codex = codexAlias;
+      codex-yolo = codexYoloAlias;
+    };
     initExtra = nomShellFunctions;
   };
 
@@ -50,7 +54,10 @@ in {
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
-    shellAliases.codex = codexAlias;
+    shellAliases = {
+      codex = codexAlias;
+      codex-yolo = codexYoloAlias;
+    };
     initContent = nomShellFunctions;
     oh-my-zsh = {
       enable = true;
@@ -70,7 +77,10 @@ in {
       semver
     ];
     settings.show_banner = false;
-    extraEnv = "alias codex = ${codexAlias}";
+    extraEnv = ''
+      alias codex = ${codexAlias}
+      alias codex-yolo = ${codexYoloAlias}
+    '';
     extraConfig = ''
       def --wrapped nix [...args: string] {
         if ($args | is-empty) {

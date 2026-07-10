@@ -342,6 +342,7 @@
   ensureWazuhRbac = pkgs.writeText "ensure-wazuh-saml-rbac.py" ''
     import base64
     import json
+    import os
     import ssl
     import time
     import urllib.error
@@ -366,9 +367,15 @@
             return raw if not raw.startswith("{") else json.loads(raw)
 
     token = None
+    api_username = os.environ["WAZUH_API_USERNAME"]
+    api_password = os.environ["WAZUH_API_PASSWORD"]
     for _ in range(90):
         try:
-            token = request("POST", "/security/user/authenticate?raw=true", basic="wazuh-wui:MyS3cr37P450r.*-")
+            token = request(
+                "POST",
+                "/security/user/authenticate?raw=true",
+                basic=f"{api_username}:{api_password}",
+            )
             break
         except (urllib.error.URLError, urllib.error.HTTPError):
             time.sleep(5)
@@ -570,8 +577,8 @@
     dashboard = dashboard_path.read_text()
     if "opensearch_security.auth.multiple_auth_enabled:" not in dashboard:
         dashboard = dashboard.rstrip() + "\n" + lines(
-            'opensearch_security.auth.multiple_auth_enabled: true',
-            'opensearch_security.auth.type: ["basicauth","saml"]',
+            'opensearch_security.auth.multiple_auth_enabled: false',
+            'opensearch_security.auth.type: "saml"',
             'server.xsrf.allowlist: ["/_opendistro/_security/saml/acs", "/_opendistro/_security/saml/logout", "/_opendistro/_security/saml/acs/idpinitiated"]',
         )
     dashboard_path.write_text(dashboard)
@@ -753,7 +760,10 @@ in {
       ${compose} up -d
 
       for _ in $(seq 1 90); do
-        if ${pkgs.curl}/bin/curl -sk --fail -u admin:SecretPassword https://127.0.0.1:9200/_cluster/health >/dev/null; then
+        if ${pkgs.curl}/bin/curl -sk --fail \
+          --cert config/wazuh_indexer_ssl_certs/admin.pem \
+          --key config/wazuh_indexer_ssl_certs/admin-key.pem \
+          https://127.0.0.1:9200/_cluster/health >/dev/null; then
           break
         fi
         sleep 5
@@ -768,6 +778,8 @@ in {
 
       securityadmin config.yml
       securityadmin roles_mapping.yml
+      export WAZUH_API_USERNAME="$(${compose} exec -T wazuh.dashboard printenv API_USERNAME)"
+      export WAZUH_API_PASSWORD="$(${compose} exec -T wazuh.dashboard printenv API_PASSWORD)"
       ${pkgs.python3}/bin/python3 ${ensureWazuhRbac}
     '';
   };

@@ -1,11 +1,11 @@
 {config, ...}: let
-  credentialsPath = config.sops.secrets."1password-connect-credentials".path;
+  credentialsPath = config.age.secrets.onepassword-connect-credentials.path;
   dataDir = "/var/lib/onepassword-connect/data";
   credentialsContainerPath = "/home/opuser/.op/1password-credentials.json";
   dataContainerPath = "/home/opuser/.op/data";
 
   commonContainerConfig = {
-    pull = "newer";
+    pull = "missing";
     autoStart = true;
     capabilities.NET_BROADCAST = true;
     environment = {
@@ -19,16 +19,11 @@
     ];
   };
 in {
-  sops.secrets."1password-connect-credentials" = {
-    sopsFile = ../../secrets/nook/onepassword-connect.sops.yaml;
-    key = "credentials_json";
+  age.secrets.onepassword-connect-credentials = {
+    file = ../../agenix/secrets/nook/onepassword-connect-credentials.age;
     owner = "root";
     group = "nscd";
     mode = "0440";
-    restartUnits = [
-      "podman-op-connect-api.service"
-      "podman-op-connect-sync.service"
-    ];
   };
 
   systemd.tmpfiles.rules = [
@@ -43,13 +38,13 @@ in {
         op-connect-sync =
           commonContainerConfig
           // {
-            image = "1password/connect-sync:latest";
+            image = "1password/connect-sync@sha256:6297ca6136c0f0fb096bc64c49e1bc8df2aab35282ebff8c7bb60745ef176d0d";
           };
 
         op-connect-api =
           commonContainerConfig
           // {
-            image = "1password/connect-api:latest";
+            image = "1password/connect-api@sha256:e915c0c843972f02b0e7e2de502bda8bd4a092288b3f1866098a857bd715a281";
             dependsOn = ["op-connect-sync"];
             ports = [
               "127.0.0.1:8080:8080"
@@ -60,7 +55,13 @@ in {
   };
 
   systemd.services = {
-    podman-op-connect-api.unitConfig.RequiresMountsFor = dataDir;
-    podman-op-connect-sync.unitConfig.RequiresMountsFor = dataDir;
+    podman-op-connect-api = {
+      unitConfig.RequiresMountsFor = dataDir;
+      restartTriggers = [../../agenix/secrets/nook/onepassword-connect-credentials.age];
+    };
+    podman-op-connect-sync = {
+      unitConfig.RequiresMountsFor = dataDir;
+      restartTriggers = [../../agenix/secrets/nook/onepassword-connect-credentials.age];
+    };
   };
 }
