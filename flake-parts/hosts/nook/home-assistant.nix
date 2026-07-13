@@ -109,6 +109,14 @@ in {
   systemd.services.podman-home-assistant.preStart = ''
     install -d -m 0700 /var/lib/hass
 
+    # Re-apply the stable USB symlinks when this configuration introduces or
+    # changes the udev rules without requiring nook to reboot first.
+    ${pkgs.systemd}/bin/udevadm trigger --action=add --subsystem-match=usb \
+      --attr-match=idVendor=8087 --attr-match=idProduct=0029
+    ${pkgs.systemd}/bin/udevadm trigger --action=add --subsystem-match=usb \
+      --attr-match=idVendor=2357 --attr-match=idProduct=0604 --attr-match=serial=E848B8C82000
+    ${pkgs.systemd}/bin/udevadm settle
+
     if [ -L /var/lib/hass/configuration.yaml ]; then
       rm /var/lib/hass/configuration.yaml
     fi
