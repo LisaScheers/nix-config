@@ -51,6 +51,7 @@
 
       rule {
         target_label = "job"
+        # Preserve the historical label used by the existing Grafana dashboards.
         replacement  = "mailcow-node"
       }
     }

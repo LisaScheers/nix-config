@@ -1,7 +1,7 @@
-{lib, ...}: {
+{...}: {
   disko.devices.disk.system = {
     type = "disk";
-    device = lib.mkDefault "/dev/sda";
+    device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_100270732";
     content = {
       type = "gpt";
       partitions = {

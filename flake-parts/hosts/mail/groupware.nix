@@ -9,6 +9,7 @@
   sanitize = value: lib.replaceStrings ["@" "."] ["-" "-"] value;
   passwordSecretName = address: "password-${sanitize address}";
   sqlEscape = value: lib.replaceStrings ["'"] ["''"] value;
+  sqlEmpty = "''";
   dbUrl = table: "mysql://sogo:SOGO_DB_PASSWORD@127.0.0.1:3306/sogo/${table}";
 
   accountRows = lib.concatStringsSep "\n" (lib.mapAttrsToList (address: metadata: let
@@ -19,9 +20,9 @@
         c_uid, domain, c_name, c_password, c_cn, mail, aliases,
         ad_aliases, ext_acl, kind, multiple_bookings
       ) VALUES (
-        '${sqlEscape address}', '${sqlEscape domain}', '${sqlEscape address}', CONCAT(),
+        '${sqlEscape address}', '${sqlEscape domain}', '${sqlEscape address}', ${sqlEmpty},
         '${sqlEscape metadata.displayName}', '${sqlEscape address}', '${sqlEscape aliases}',
-        CONCAT(), CONCAT(), CONCAT(), -1
+        ${sqlEmpty}, ${sqlEmpty}, ${sqlEmpty}, -1
       ) ON DUPLICATE KEY UPDATE
         domain = VALUES(domain), c_name = VALUES(c_name), c_cn = VALUES(c_cn),
         mail = VALUES(mail), aliases = VALUES(aliases);
@@ -64,14 +65,14 @@
     };
   '';
 
-  thunderbirdConfig = ''
+  thunderbirdConfig = domain: ''
     default_type application/xml;
     return 200 '<?xml version="1.0" encoding="UTF-8"?>
     <clientConfig version="1.1">
-      <emailProvider id="scheers-mail">
-        <domain>scheers.tech</domain>
-        <displayName>Scheers Mail</displayName>
-        <displayShortName>Scheers</displayShortName>
+      <emailProvider id="${domain}-mail">
+        <domain>${domain}</domain>
+        <displayName>${domain} Mail</displayName>
+        <displayShortName>${domain}</displayShortName>
         <incomingServer type="imap">
           <hostname>m.scheers.tech</hostname>
           <port>993</port>
@@ -102,7 +103,7 @@
           port = 80;
         }
       ];
-      locations."/mail/config-v1.1.xml".extraConfig = thunderbirdConfig;
+      locations."/mail/config-v1.1.xml".extraConfig = thunderbirdConfig domain;
     })
   domains);
 in {
@@ -256,6 +257,7 @@ in {
   security.acme.certs."m.scheers.tech" = {
     webroot = "/var/lib/acme/acme-challenge";
     group = "nginx";
+    extraDomainNames = ["mail.scheers.tech"];
   };
 
   services.nginx = {

@@ -26,9 +26,11 @@ The following domains are deliberately omitted: `collabkins.com`,
 
 ## Before installing
 
-The disk layout in `disko-config.nix` reformats `/dev/sda`. Do not run
-`nixos-anywhere` against the current server until all of the following
-artifacts exist on independent storage and have been restore-tested:
+The disk layout in `disko-config.nix` reformats the disk identified as
+`/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_100270732` (currently
+`/dev/sda`). Do not run `nixos-anywhere` against the current server until
+all of the following artifacts exist on independent storage and have been
+restore-tested:
 
 1. A filesystem-level copy of the Mailcow vmail volume.
 2. A MariaDB dump of every `sogo_%` table used by Mailcow.
