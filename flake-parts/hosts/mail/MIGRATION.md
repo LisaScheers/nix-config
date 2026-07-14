@@ -24,6 +24,39 @@ The following domains are deliberately omitted: `collabkins.com`,
 `meltibelti.com`, `drone-8653.com`, `miraa.dev`, and
 `ngpoolservice.be`.
 
+## Pre-deployment validation gates
+
+Run every gate below from the repository before any destructive installation.
+Do not continue unless every command exits successfully:
+
+```sh
+set -eu
+
+nix eval --raw path:.#nixosConfigurations.mail.config.system.build.toplevel.drvPath
+nix build path:.#checks.x86_64-linux.mail --no-link
+
+identity="$HOME/.config/sops/age/keys.txt"
+for secret in flake-parts/agenix/secrets/mail/*.age; do
+  age -d -i "$identity" "$secret" >/dev/null
+done
+
+for key in flake-parts/agenix/secrets/mail/dkim-*.age; do
+  age -d -i "$identity" "$key" |
+    openssl rsa -check -noout >/dev/null 2>&1
+done
+
+system=$(nix build path:.#nixosConfigurations.mail.config.system.build.toplevel --no-link --print-out-paths)
+lua_file=$(readlink -f "$system/etc/dovecot/app-passwords.lua")
+nix shell nixpkgs#lua -c luac -p "$lua_file"
+
+git diff --check
+```
+
+These gates validate evaluation, the complete mail-host check build, all age
+recipients, all retained DKIM private keys, the generated Dovecot app-password
+Lua, and whitespace integrity. Record the successful output with the cutover
+notes.
+
 ## Before installing
 
 The disk layout in `disko-config.nix` reformats the disk identified as
@@ -62,8 +95,23 @@ tree owned by `virtualMail:virtualMail` (numeric UID/GID 5000 in this
 configuration). Stop Dovecot during the final copy, then remove or rebuild the
 Dovecot indexes before starting it.
 
-After restoration, compare per-mailbox message counts and byte totals on both
-sides before changing MX records.
+For every mailbox, generate a deterministic manifest of the message files under
+all `cur` and `new` directories on the frozen source and restored
+destination. Use relative filenames and SHA-256 content hashes, for example:
+
+```sh
+cd /path/to/mailbox
+find . -type f \( -path '*/cur/*' -o -path '*/new/*' \) -print0 |
+  sort -z |
+  xargs -0 sha256sum --binary --zero > /independent-storage/mailbox.manifest
+```
+
+Generate the source and destination manifests separately, then compare them
+with `cmp`. Also run an `rsync --archive --hard-links --checksum --dry-run`
+against each mailbox and compare message counts and byte totals. Counts and
+totals are supplementary checks only: any filename, checksum, manifest, or
+rsync content delta is a cutover blocker and must be reconciled before changing
+MX records.
 
 ## SOGo data
 
@@ -85,7 +133,9 @@ created. Stop SOGo, then restore the Mailcow SOGo data tables into the new
 Do not replace the new `accounts` table: it is regenerated from
 `accounts.nix` on every boot. Restore any additional Mailcow `sogo_%` data
 tables that appear in the final dump, then start SOGo and verify calendars,
-address books, sharing ACLs, and ActiveSync.
+address books, sharing ACLs, and ActiveSync. Record source and destination row
+counts for every restored table and compare normalized dumps or table checksums;
+any unexplained data-table delta blocks cutover.
 
 ## DNS and cutover checks
 
@@ -109,10 +159,72 @@ server cutover.
 
 Lower MX TTLs before the maintenance window. During the window, freeze the old
 server, take the final incremental backups, restore, start the NixOS services,
-and test local delivery plus authenticated IMAP/SMTP before directing traffic
-to the replacement. Keep the old data offline and intact until delayed mail,
-webmail, DAV, ActiveSync, aliases, catch-alls, DKIM, SPF, DMARC, and monitoring
-have all been verified.
+and complete the credential matrix below before directing traffic to the
+replacement. Keep the old data offline and intact until delayed mail, webmail,
+DAV, ActiveSync, aliases, catch-alls, DKIM, SPF, DMARC, and monitoring have all
+been verified.
+
+## Credential and protocol matrix
+
+Use non-sensitive test accounts and temporary credentials. Do not print or
+record passwords in shell history or logs. For every one of the five migrated
+app passwords, compare each Mailcow protocol flag with the observed result:
+enabled protocols must authenticate and disabled protocols must reject it.
+
+| Path | Endpoint | Positive test | Negative test |
+| --- | --- | --- | --- |
+| IMAP | `m.scheers.tech:993` TLS | Enabled app password and primary password authenticate and can list folders. | Disabled app password and an incorrect password are rejected. |
+| SMTP submission | `m.scheers.tech:465` TLS and `:587` STARTTLS | Enabled app password and primary password authenticate and deliver a test message. | Disabled app password, wrong password, and unauthorized sender address are rejected. |
+| POP3 | `m.scheers.tech:995` TLS and `:110` STARTTLS | Enabled app password and primary password authenticate and list a disposable test message. | Disabled app password and an incorrect password are rejected. |
+| ManageSieve | `m.scheers.tech:4190` STARTTLS | Enabled app password and primary password authenticate and round-trip a temporary script. | Disabled app password and an incorrect password are rejected. |
+| SOGo webmail | `https://mail.scheers.tech/SOGo/` | Primary password signs in and opens the mailbox. | Every app password and an incorrect primary password are rejected. |
+| CalDAV/CardDAV | SOGo DAV URLs | Primary password can read and write a temporary event and contact. | Every app password and an incorrect primary password are rejected. |
+| ActiveSync | `/Microsoft-Server-ActiveSync` | Primary password completes provisioning and a test sync. | Every app password and an incorrect primary password are rejected. |
+
+Repeat SMTP receive and delivery tests for every retained domain, alias, and
+catch-all. Verify the message arrives once with the expected envelope recipient,
+then verify outbound DKIM and DMARC results from an external mailbox.
+
+## Rollback gate and procedure
+
+Because installation reformats the current Mailcow disk, backups alone are not
+a fast rollback. Before installation, create a bootable provider snapshot or
+clone of the complete Mailcow server and prove that it boots with networking
+disabled or on an isolated address. Record the previous DNS values and TTLs.
+
+Trigger rollback if any of these conditions is true:
+
+- Any Maildir or SOGo manifest, checksum, filename, or row-count discrepancy
+  remains.
+- Any required positive credential test fails twice, or any required negative
+  test unexpectedly succeeds.
+- Inbound or outbound SMTP is unavailable, or the deferred Postfix queue grows
+  because of a local failure for more than 15 minutes.
+- DKIM, SPF, DMARC, TLS certificate, aliases, or catch-all verification fails.
+- A critical service remains failed after a 30-minute troubleshooting window.
+
+When a trigger fires:
+
+1. Stop public ingress and freeze Postfix, Dovecot, SOGo, and the Cloudflare
+   tunnel on the replacement. Preserve `/var/spool/postfix`; do not discard or
+   bounce queued mail.
+2. Copy the replacement's complete `/var/vmail` tree and a fresh SOGo database
+   dump to independent rollback storage. Create manifests so post-cutover mail
+   and groupware changes can be identified.
+3. Restore or boot the verified Mailcow snapshot/clone. Restore the recorded
+   A/AAAA, MX, and tunnel routing if addresses changed, then verify the old
+   server locally before reopening SMTP.
+4. Reconcile messages received only by the replacement using relative paths,
+   content hashes, and Message-IDs. Import each missing message exactly once.
+   Reconcile SOGo changes from the rollback dump without replacing newer
+   records blindly.
+5. Drain or replay the preserved Postfix queue under operator supervision,
+   verify it is empty, repeat the delivery and credential matrices, and only
+   then declare Mailcow active again.
+
+External senders should receive temporary failures and retry while both hosts
+are frozen. Never run both hosts as writable authorities for the same mailbox
+during rollback reconciliation.
 
 ## Intentional differences
 
@@ -124,15 +236,7 @@ have all been verified.
   DAV, and ActiveSync authenticate with the mailbox's primary password because
   native SOGo SQL authentication supports one password hash per account.
 
-## Validation commands
-
-```sh
-nix eval --raw path:.#nixosConfigurations.mail.config.system.build.toplevel.drvPath
-nix build path:.#nixosConfigurations.mail.config.system.build.toplevel --no-link
-```
-
 After boot, use a temporary test message and non-sensitive test credentials to
-exercise IMAP, submission, Sieve, webmail, CalDAV/CardDAV, and ActiveSync.
-Inspect `systemctl --failed`, the Postfix and Dovecot journals, Rspamd scan
-results, SOGo logs, ACME state, and the Alloy endpoint before accepting the
-cutover.
+complete the full credential and protocol matrix. Inspect
+`systemctl --failed`, the Postfix and Dovecot journals, Rspamd scan results,
+SOGo logs, ACME state, and the Alloy endpoint before accepting the cutover.
