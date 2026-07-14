@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: {
   services.tailscale = {
@@ -25,4 +26,8 @@
   virtualisation.docker.daemon.settings = lib.mkIf config.virtualisation.docker.enable {
     firewall-backend = "nftables";
   };
+
+  systemd.services.docker.path = lib.mkIf config.virtualisation.docker.enable [
+    pkgs.nftables
+  ];
 }
