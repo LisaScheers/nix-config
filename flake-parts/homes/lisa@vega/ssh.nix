@@ -22,14 +22,14 @@ in {
       };
 
       "atlas" = {
-        HostName = "91.99.142.26";
+        HostName = "100.87.26.75";
         User = "root";
         IdentityFile = "~/.ssh/hetzner-mc";
         IdentitiesOnly = true;
       };
 
       "nook" = {
-        HostName = "192.168.111.2";
+        HostName = "100.106.233.104";
         User = "lisa";
         IdentityFile = "~/.ssh/home-server.pub";
         IdentitiesOnly = true;
@@ -39,13 +39,6 @@ in {
         HostName = "192.168.1.1";
         User = "root";
         PreferredAuthentications = "keyboard-interactive";
-      };
-
-      "matrix" = {
-        HostName = "matrix.bylisa.dev";
-        User = "lisa";
-        IdentityFile = "~/.ssh/hetzner-mc";
-        IdentitiesOnly = true;
       };
 
       "*" = {
