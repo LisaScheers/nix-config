@@ -9,7 +9,6 @@
     ./minecraft.nix
     ./mastodon.nix
     ./monitoring.nix
-    ./stock-keeper.nix
     ./shop-empty-track.nix
     ./authentik.nix
     ./bluesky-pds.nix
@@ -20,7 +19,6 @@
   environment.systemPackages = with pkgs; [
     git
     htop
-    tailscale
   ];
 
   nix.settings.experimental-features = [
@@ -45,11 +43,6 @@
       KbdInteractiveAuthentication = false;
     };
   };
-  services.tailscale = {
-    enable = true;
-    extraSetFlags = ["--accept-dns=false"];
-  };
-
   users.users = {
     root.hashedPassword = "!"; # Disable root login
     lisa = {
@@ -73,8 +66,6 @@
 
   security.acme.acceptTerms = true;
   security.acme.defaults.email = "lisa@scheers.tech";
-
-  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [22];
 
   age.secrets = {
     auto-sync-update-env = {

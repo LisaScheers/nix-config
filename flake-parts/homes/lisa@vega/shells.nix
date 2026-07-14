@@ -74,7 +74,7 @@ in {
       formats
       gstat
       query
-      semver
+      #semver
     ];
     settings.show_banner = false;
     extraEnv = ''

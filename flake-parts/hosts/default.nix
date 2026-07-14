@@ -38,6 +38,7 @@
             nixpkgs.config.allowUnfree = true;
             networking.hostName = hostName;
           }
+          ./_nixos-networking.nix
           inputs.disko.nixosModules.disko
           config.flake.nixosModules.security_sops
           config.flake.nixosModules.security_agenix
@@ -99,6 +100,7 @@
             nixpkgs.config.allowUnfree = true;
             networking.hostName = hostName;
           }
+          ./_darwin-tailscale.nix
           inputs.nix-homebrew.darwinModules.nix-homebrew
           config.flake.darwinModules.security_sops
           config.flake.darwinModules.security_agenix
@@ -148,7 +150,6 @@ in {
             config.flake.nixosModules.services_authentik
             config.flake.nixosModules.services_forgejo-runner
             config.flake.nixosModules.services_matrix
-            inputs.stock-keeper.nixosModules.default
             inputs.shop-empty-track.nixosModules.default
           ];
         }
@@ -177,10 +178,6 @@ in {
   flake-file.inputs = {
     disko = {
       url = "github:nix-community/disko";
-    };
-    stock-keeper = {
-      inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:LisaScheers/stock-keeper/main";
     };
     shop-empty-track = {
       inputs.nixpkgs.follows = "nixpkgs";

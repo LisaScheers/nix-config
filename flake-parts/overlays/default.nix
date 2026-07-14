@@ -1,6 +1,5 @@
 # --- flake-parts/overlays/default.nix
-{ inputs, ... }:
-let
+{inputs, ...}: let
   codex = final: _prev: {
     codex = inputs.codex-cli-nix.packages.${final.stdenv.hostPlatform.system}.default;
   };
@@ -9,28 +8,24 @@ let
   # on Darwin Nix builds with EPERM / wrong SHLVL (see env.rs SHLVL checks).
   nushell = _final: prev: {
     nushell =
-      if prev.stdenv.hostPlatform.isDarwin then
+      if prev.stdenv.hostPlatform.isDarwin
+      then
         prev.nushell.overrideAttrs (_old: {
           doCheck = false;
         })
-      else
-        prev.nushell;
+      else prev.nushell;
   };
 
-  stockKeeper = import ./stock-keeper.nix { inherit inputs; };
-
-  default = final: prev: (codex final prev) // (nushell final prev) // (stockKeeper final prev);
-in
-{
+  default = final: prev: (codex final prev) // (nushell final prev);
+in {
   flake.overlays = {
     inherit codex default nushell;
-    stock-keeper = stockKeeper;
   };
 
-  perSystem = { system, ... }: {
+  perSystem = {system, ...}: {
     _module.args.pkgs = import inputs.nixpkgs {
       inherit system;
-      overlays = [ default ];
+      overlays = [default];
       config.allowUnfree = true;
     };
   };

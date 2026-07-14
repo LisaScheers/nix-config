@@ -96,20 +96,7 @@
       esac
     '';
   };
-  markUserCommands =
-    lib.concatMapStringsSep "\n" (user: ''
-      iptables -w -t mangle -D OUTPUT -m owner --uid-owner ${user} -j media-egress-vlan 2>/dev/null || true
-      iptables -w -t mangle -A OUTPUT -m owner --uid-owner ${user} -j media-egress-vlan
-      ip6tables -w -t mangle -D OUTPUT -m owner --uid-owner ${user} -j media-egress-vlan6 2>/dev/null || true
-      ip6tables -w -t mangle -A OUTPUT -m owner --uid-owner ${user} -j media-egress-vlan6
-    '')
-    mediaServiceUsers;
-  unmarkUserCommands =
-    lib.concatMapStringsSep "\n" (user: ''
-      iptables -w -t mangle -D OUTPUT -m owner --uid-owner ${user} -j media-egress-vlan 2>/dev/null || true
-      ip6tables -w -t mangle -D OUTPUT -m owner --uid-owner ${user} -j media-egress-vlan6 2>/dev/null || true
-    '')
-    mediaServiceUsers;
+  mediaServiceUserSet = lib.concatStringsSep ", " mediaServiceUsers;
   proxyErrorPage = import ./_nginx-error-page.nix {inherit pkgs;};
   proxyHost = port:
     lib.mkMerge [
@@ -268,38 +255,38 @@ in {
     };
   };
 
-  networking.firewall = {
-    extraCommands = ''
-      iptables -w -t mangle -N media-egress-vlan 2>/dev/null || true
-      iptables -w -t mangle -F media-egress-vlan
-      iptables -w -t mangle -A media-egress-vlan -d 0.0.0.0/8 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -d 10.0.0.0/8 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -d 100.64.0.0/10 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -d 127.0.0.0/8 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -d 169.254.0.0/16 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -d 172.16.0.0/12 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -d 192.168.0.0/16 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -d 224.0.0.0/4 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -d 240.0.0.0/4 -j RETURN
-      iptables -w -t mangle -A media-egress-vlan -j MARK --set-mark ${mediaRoutingMark}
-
-      ip6tables -w -t mangle -N media-egress-vlan6 2>/dev/null || true
-      ip6tables -w -t mangle -F media-egress-vlan6
-      ip6tables -w -t mangle -A media-egress-vlan6 -d ::1/128 -j RETURN
-      ip6tables -w -t mangle -A media-egress-vlan6 -d fe80::/10 -j RETURN
-      ip6tables -w -t mangle -A media-egress-vlan6 -d fc00::/7 -j RETURN
-      ip6tables -w -t mangle -A media-egress-vlan6 -d ff00::/8 -j RETURN
-      ip6tables -w -t mangle -A media-egress-vlan6 -d 2000::/3 -j MARK --set-mark ${mediaRoutingMark}
-
-      ${markUserCommands}
+  networking.nftables = {
+    # The build sandbox has no media service users. Substitute a known UID only
+    # while syntax-checking; the deployed rules resolve the real host users.
+    preCheckRuleset = ''
+      sed 's/meta skuid { ${mediaServiceUserSet} }/meta skuid root/g' -i ruleset.conf
     '';
-    extraStopCommands = ''
-      ${unmarkUserCommands}
-      iptables -w -t mangle -F media-egress-vlan 2>/dev/null || true
-      iptables -w -t mangle -X media-egress-vlan 2>/dev/null || true
-      ip6tables -w -t mangle -F media-egress-vlan6 2>/dev/null || true
-      ip6tables -w -t mangle -X media-egress-vlan6 2>/dev/null || true
-    '';
+    tables.media-egress = {
+      family = "inet";
+      content = ''
+        set local_ipv4 {
+          type ipv4_addr
+          flags interval
+          elements = {
+            0.0.0.0/8,
+            10.0.0.0/8,
+            100.64.0.0/10,
+            127.0.0.0/8,
+            169.254.0.0/16,
+            172.16.0.0/12,
+            192.168.0.0/16,
+            224.0.0.0/4,
+            240.0.0.0/4
+          }
+        }
+
+        chain mark-media-egress {
+          type route hook output priority mangle; policy accept;
+          meta skuid { ${mediaServiceUserSet} } ip daddr != @local_ipv4 meta mark set ${mediaRoutingMark}
+          meta skuid { ${mediaServiceUserSet} } ip6 daddr 2000::/3 meta mark set ${mediaRoutingMark}
+        }
+      '';
+    };
   };
 
   systemd.services = {

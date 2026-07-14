@@ -1,9 +1,4 @@
-{lib, ...}: {
-  services.tailscale = {
-    enable = true;
-    overrideLocalDns = false;
-  };
-
+{...}: {
   system.activationScripts.postActivation.text = ''
     echo "configuring internal.bylisa.dev host records..." >&2
 

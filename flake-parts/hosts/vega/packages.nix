@@ -12,7 +12,7 @@
     alacritty
     alacritty.terminfo
     element-desktop
-    mpv
+    #mpv
     obsidian
     orbstack
     slack
