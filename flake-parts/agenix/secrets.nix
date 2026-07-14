@@ -2,7 +2,7 @@ let
   keys = import ./pubkeys.nix;
   all = [
     keys.users.lisa
-    keys.hosts.serverRoot
+    keys.hosts.atlas
     keys.hosts.nook
     keys.hosts.vega
   ];

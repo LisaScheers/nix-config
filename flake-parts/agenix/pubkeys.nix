@@ -5,7 +5,7 @@
   # Keep host recipients as SSH public keys: agenix decrypts them with the
   # corresponding raw SSH private keys from age.identityPaths.
   hosts = {
-    serverRoot = "age15q57cpasm2twuu45x6g3e0dge9k9xawy7mjc7lnzwlxu78pfcd6qfzkwze";
+    atlas = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAENd/dAYVGayQQOwHZqzgtMZGQOlBjLUhBAt4bvTuZP";
     nook = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEHlf+pLT6XITnorOuDH0j9KtrVgZktsE5rPQzw3An8y";
     vega = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAxcMSI/fLy0nITZIQcsu3KQJhi3EFAsRpTGI/yPLox3";
   };
