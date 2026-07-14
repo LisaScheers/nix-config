@@ -13,11 +13,11 @@ in {
         IdentitiesOnly = true;
       };
 
-      "mail-hetzner" = {
+      "mail" = {
         HostName = "100.121.88.128";
         User = "root";
         Port = 22;
-        IdentityFile = "~/.ssh/hetzner";
+        IdentityFile = "~/.ssh/root@mail.pub";
         IdentitiesOnly = true;
       };
 
