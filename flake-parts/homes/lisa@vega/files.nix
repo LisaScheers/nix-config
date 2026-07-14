@@ -23,13 +23,11 @@
     foreground = "#ffffff"
   '';
 
-  home.file = {
-    ".config/git/allowed_signers".source = ./ssh/allowed-signers;
-    ".ssh/SSH Key DevOps.pub".source = ./ssh/public-keys/ssh-key-devops.pub;
-    ".ssh/ai-agent-sandbox.pub".source = ./ssh/public-keys/ai-agent-sandbox.pub;
-    ".ssh/codeberg.pub".source = ./ssh/public-keys/codeberg.pub;
-    ".ssh/dev.pub".source = ./ssh/public-keys/dev.pub;
-    ".ssh/devops-odisee.pub".source = ./ssh/public-keys/devops-odisee.pub;
-    ".ssh/home-server.pub".source = ./ssh/public-keys/home-server.pub;
-  };
+  # add all .pub files in the ssh/public-keys directory to the home.file attribute set
+  home.file = builtins.listToAttrs (map (key: {
+    name = ".ssh/${key}";
+    value = {
+      source = ./ssh/public-keys/${key};
+    };
+  }) (builtins.filter (key: builtins.match ".*\\.pub" key != null) (builtins.attrNames (builtins.readDir ./ssh/public-keys))));
 }

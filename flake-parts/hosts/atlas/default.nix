@@ -9,7 +9,7 @@
     ./minecraft.nix
     ./mastodon.nix
     ./monitoring.nix
-    ./shop-empty-track.nix
+    # ./shop-empty-track.nix
     ./authentik.nix
     ./bluesky-pds.nix
     ./disko-config.nix

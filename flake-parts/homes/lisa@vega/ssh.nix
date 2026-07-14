@@ -23,8 +23,8 @@ in {
 
       "atlas" = {
         HostName = "100.87.26.75";
-        User = "root";
-        IdentityFile = "~/.ssh/hetzner-mc";
+        User = "lisa";
+        IdentityFile = "~/.ssh/lisa@atlas.pub";
         IdentitiesOnly = true;
       };
 
