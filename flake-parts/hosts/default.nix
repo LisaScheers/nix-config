@@ -154,6 +154,16 @@ in {
           ];
         }
     );
+
+    mail = withSystem "x86_64-linux" (
+      args:
+        mkHost args "mail" {
+          withHomeManager = false;
+          extraModules = [
+            inputs.nixos-mailserver.nixosModules.default
+          ];
+        }
+    );
   };
 
   flake.darwinConfigurations = {
@@ -182,6 +192,11 @@ in {
     shop-empty-track = {
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:LisaScheers/shop-empty-track/main";
+    };
+
+    nixos-mailserver = {
+      url = "gitlab:simple-nixos-mailserver/nixos-mailserver/main";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nix-darwin = {
@@ -215,6 +230,10 @@ in {
 
   flake.checks.aarch64-darwin = {
     vega = config.flake.darwinConfigurations.vega.system;
+  };
+
+  flake.checks.x86_64-linux = {
+    mail = config.flake.nixosConfigurations.mail.config.system.build.toplevel;
   };
 
   # myExampleHost = withSystem "x86_64-linux" (

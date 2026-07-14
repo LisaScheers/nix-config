@@ -14,6 +14,10 @@ let
     keys.users.lisa
     keys.hosts.vega
   ];
+  mail = [
+    keys.users.lisa
+    keys.hosts.mail
+  ];
 in {
   "secrets/atlas/authentik-env.age".publicKeys = all;
   "secrets/atlas/authentik-ldap-outpost-env.age".publicKeys = all;
@@ -40,4 +44,29 @@ in {
   "secrets/vega/nix-github-access-token-conf.age".publicKeys = vega;
 
   "secrets/shared/github-env.age".publicKeys = all;
+
+  "secrets/mail/cloudflared-token.age".publicKeys = mail;
+  "secrets/mail/app-passwords.age".publicKeys = mail;
+  "secrets/mail/monitoring-otlp-env.age".publicKeys = mail;
+  "secrets/mail/sogo-db-password.age".publicKeys = mail;
+  "secrets/mail/sogo-encryption-key.age".publicKeys = mail;
+
+  "secrets/mail/dkim-chiritsu-com.age".publicKeys = mail;
+  "secrets/mail/dkim-clovercri-com.age".publicKeys = mail;
+  "secrets/mail/dkim-icetokki-com.age".publicKeys = mail;
+  "secrets/mail/dkim-scheers-tech.age".publicKeys = mail;
+
+  "secrets/mail/password-allabs-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-auth-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-catchall-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-cyanna-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-hello-chiritsu-com.age".publicKeys = mail;
+  "secrets/mail/password-info-clovercri-com.age".publicKeys = mail;
+  "secrets/mail/password-lisa-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-matrix-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-nix-watchdog-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-pds-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-scan-scheers-tech.age".publicKeys = mail;
+  "secrets/mail/password-tokki-icetokki-com.age".publicKeys = mail;
+  "secrets/mail/password-vaultwarden-scheers-tech.age".publicKeys = mail;
 }
