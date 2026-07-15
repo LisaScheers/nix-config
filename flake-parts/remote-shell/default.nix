@@ -24,6 +24,7 @@
   starshipConfig = ../homes + "/lisa@vega/starship.toml";
   bundleContentHash = builtins.hashString "sha256" (builtins.concatStringsSep "\n" [
     portableFlake
+    (builtins.toJSON portableLock)
     (builtins.toJSON x86DarwinNixpkgs)
     (builtins.toJSON nixPortableSources)
     (builtins.readFile ./profile.nix)
@@ -58,13 +59,12 @@
         };
       };
       nixpkgs-x86-darwin = {
-        locked =
-          x86DarwinNixpkgs
-          // {
-            owner = "NixOS";
-            repo = "nixpkgs";
-            type = "github";
-          };
+        locked = {
+          inherit (x86DarwinNixpkgs) lastModified narHash rev;
+          owner = "NixOS";
+          repo = "nixpkgs";
+          type = "github";
+        };
         original = {
           inherit (x86DarwinNixpkgs) rev;
           owner = "NixOS";
@@ -204,6 +204,7 @@ in {
           pkgs.gnugrep
           pkgs.gnutar
           pkgs.gzip
+          pkgs.jq
         ];
       } ''
                 for archive in ${artifacts}/bundles/${version}/*.tar.gz; do
@@ -235,6 +236,10 @@ in {
                     exit 1
                   fi
                   tar -xzf "$archive" -C "$TMPDIR"
+                  if jq -e '.nodes[]?.locked.tarballHash?' "$TMPDIR/source/flake.lock" >/dev/null; then
+                    echo "non-flake fetcher hash found in $archive" >&2
+                    exit 1
+                  fi
                   if grep -R -E '(OP_[A-Z_]+|op://|1[Pp]assword|age\.secrets)' "$TMPDIR/source"; then
                     echo "secret reference found in $archive" >&2
                     exit 1
