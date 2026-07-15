@@ -20,7 +20,7 @@ in {
       "file:///System/Applications/Calendar.app/"
       "file:///Applications/ChatGPT.app/"
       "file:///Applications/Visual%20Studio%20Code.app/"
-      "file:///Applications/Nix%20Apps/Alacritty.app/"
+      "file:///Applications/Nix%20Apps/Ghostty.app/"
       "file:///Applications/Discord.app/"
       "file:///Applications/Firestorm-Nightlyx64.app/"
       "file:///Applications/Spotify.app/"

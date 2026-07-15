@@ -9,8 +9,8 @@
     nil
     ripgrep
     raycast
-    alacritty
-    alacritty.terminfo
+    ghostty-bin
+    ghostty-bin.terminfo
     element-desktop
     #mpv
     obsidian
