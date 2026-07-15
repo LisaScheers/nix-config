@@ -1,12 +1,15 @@
-{...}: {
+{
+  lib,
+  pkgs,
+  ...
+}: {
   programs.ghostty = {
     enable = true;
     # Ghostty is installed system-wide with ghostty-bin because the source
     # package is not supported on Darwin.
     package = null;
     settings = {
-      command = "direct:/bin/zsh -c nu";
-      shell-integration = "nushell";
+      command = "direct:${lib.getExe pkgs.nushell}";
 
       font-family = "ComicCodeLigatures Nerd Font";
       font-family-bold = "ComicCodeLigatures Nerd Font";
