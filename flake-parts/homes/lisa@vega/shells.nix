@@ -78,6 +78,8 @@ in {
     ];
     settings.show_banner = false;
     extraEnv = ''
+      $env.PATH = ($env.PATH | prepend "/etc/profiles/per-user/${config.home.username}/bin")
+
       alias codex = ${codexAlias}
       alias codex-yolo = ${codexYoloAlias}
     '';
