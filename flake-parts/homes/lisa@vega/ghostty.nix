@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   ...
@@ -10,6 +11,7 @@
     package = null;
     settings = {
       command = "direct:${lib.getExe pkgs.nushell}";
+      env = ["XDG_CONFIG_HOME=${config.xdg.configHome}"];
 
       font-family = "ComicCodeLigatures Nerd Font";
       font-family-bold = "ComicCodeLigatures Nerd Font";
