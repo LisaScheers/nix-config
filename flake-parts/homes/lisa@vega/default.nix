@@ -5,6 +5,7 @@
     ./direnv.nix
     ./packages.nix
     ./shells.nix
+    ./ghostty.nix
     ./files.nix
     ./darwin.nix
     ./onepassword.nix

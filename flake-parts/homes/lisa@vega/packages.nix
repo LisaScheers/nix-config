@@ -1,6 +1,6 @@
 {pkgs, ...}: {
   home.packages = with pkgs; [
-    alacritty.terminfo
+    ghostty-bin.terminfo
     git
     htop
     tree
