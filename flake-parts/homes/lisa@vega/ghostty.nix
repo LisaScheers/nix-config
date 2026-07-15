@@ -12,6 +12,7 @@
     settings = {
       command = "direct:${lib.getExe pkgs.nushell}";
       env = ["XDG_CONFIG_HOME=${config.xdg.configHome}"];
+      shell-integration-features = "sudo,ssh-env,ssh-terminfo,path";
 
       font-family = "ComicCodeLigatures Nerd Font";
       font-family-bold = "ComicCodeLigatures Nerd Font";
