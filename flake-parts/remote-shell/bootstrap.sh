@@ -91,4 +91,9 @@ main() {
   "$session_root/run.sh" "$@"
 }
 
+if ! (: </dev/tty >/dev/tty) 2>/dev/null; then
+  echo "bylisa-shell: a controlling terminal is required" >&2
+  exit 1
+fi
+
 main "$@" </dev/tty >/dev/tty 2>&1

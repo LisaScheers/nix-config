@@ -10,13 +10,31 @@
     "x86_64-linux"
   ];
   supportedSystemsExpression = "[ ${lib.concatMapStringsSep " " builtins.toJSON supportedSystems} ]";
-  version = "${builtins.substring 0 12 inputs.nixpkgs.rev}-4";
-  x86DarwinNixpkgs = {
-    rev = "3860155d3bdb870027d96373fa8d7a423b8809de";
-    lastModified = 1784025883;
-    narHash = "sha256-9ukpzADj9YEkb0aC51864JxxUg+RJhxakBDTgnHIGr4=";
+  x86DarwinNixpkgs = import ./x86-darwin-nixpkgs.nix;
+  nixPortableSources = {
+    aarch64-linux = {
+      url = "https://github.com/DavHau/nix-portable/releases/download/v012/nix-portable-aarch64";
+      hash = "sha256-r0HY3v25+hfuNhIg7gWgx1jT5iMThKP5aaMU+RM3ROo=";
+    };
+    x86_64-linux = {
+      url = "https://github.com/DavHau/nix-portable/releases/download/v012/nix-portable-x86_64";
+      hash = "sha256-tAnFWQTJCaw67aP7ElMxn4aond0boxpd7DPUoGQUxyo=";
+    };
   };
   starshipConfig = ../homes + "/lisa@vega/starship.toml";
+  bundleContentHash = builtins.hashString "sha256" (builtins.concatStringsSep "\n" [
+    portableFlake
+    (builtins.toJSON x86DarwinNixpkgs)
+    (builtins.toJSON nixPortableSources)
+    (builtins.readFile ./profile.nix)
+    (builtins.readFile ./launcher.sh)
+    (builtins.readFile ./config.nu)
+    (builtins.readFile ./env.nu)
+    (builtins.readFile ./gitconfig)
+    (builtins.readFile ./run.sh)
+    (builtins.readFile starshipConfig)
+  ]);
+  version = "${builtins.substring 0 12 inputs.nixpkgs.rev}-${builtins.substring 0 12 bundleContentHash}";
   portableLock = {
     version = 7;
     root = "root";
@@ -102,16 +120,7 @@ in {
       cp ${./gitconfig} "$out/gitconfig"
       cp ${starshipConfig} "$out/starship.toml"
     '';
-    nixPortable = {
-      aarch64-linux = pkgs.fetchurl {
-        url = "https://github.com/DavHau/nix-portable/releases/download/v012/nix-portable-aarch64";
-        hash = "sha256-r0HY3v25+hfuNhIg7gWgx1jT5iMThKP5aaMU+RM3ROo=";
-      };
-      x86_64-linux = pkgs.fetchurl {
-        url = "https://github.com/DavHau/nix-portable/releases/download/v012/nix-portable-x86_64";
-        hash = "sha256-tAnFWQTJCaw67aP7ElMxn4aond0boxpd7DPUoGQUxyo=";
-      };
-    };
+    nixPortable = lib.mapAttrs (_system: source: pkgs.fetchurl source) nixPortableSources;
     linuxPkgs = lib.genAttrs ["aarch64-linux" "x86_64-linux"] (
       targetSystem:
         import inputs.nixpkgs {
