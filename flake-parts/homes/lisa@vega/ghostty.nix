@@ -6,6 +6,7 @@
     package = null;
     settings = {
       command = "direct:/bin/zsh -c nu";
+      shell-integration = "nushell";
 
       font-family = "ComicCodeLigatures Nerd Font";
       font-family-bold = "ComicCodeLigatures Nerd Font";
