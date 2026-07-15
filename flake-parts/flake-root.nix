@@ -18,4 +18,20 @@
   imports = [
     inputs.flake-file.flakeModules.nix-auto-follow
   ];
+
+  # Build nix-auto-follow with each system's package set. The input follows the
+  # unstable nixpkgs, which no longer evaluates on x86_64-darwin, while our
+  # x86_64-darwin package set intentionally remains on nixpkgs 26.05.
+  config.flake-file.prune-lock.program = lib.mkForce (
+    pkgs: let
+      nix-auto-follow = pkgs.callPackage (inputs.nix-auto-follow + "/derivation.nix") {};
+    in
+      pkgs.writeShellApplication {
+        name = "nix-auto-follow";
+        runtimeInputs = [nix-auto-follow];
+        text = ''
+          auto-follow "$1" > "$2"
+        '';
+      }
+  );
 }

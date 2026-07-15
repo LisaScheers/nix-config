@@ -1,0 +1,7 @@
+[user]
+	name = Lisa Scheers
+	email = lisa@scheers.tech
+[init]
+	defaultBranch = main
+[commit]
+	gpgSign = false

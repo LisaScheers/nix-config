@@ -19,5 +19,6 @@
   xdg.enable = true;
 
   programs.home-manager.enable = true;
+  programs.nssh.enable = true;
   manual.manpages.enable = false;
 }

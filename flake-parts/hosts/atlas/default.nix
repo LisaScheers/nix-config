@@ -14,6 +14,7 @@
     ./bluesky-pds.nix
     ./disko-config.nix
     ./forgejo-runner.nix
+    ./shell.nix
   ];
 
   environment.systemPackages = with pkgs; [

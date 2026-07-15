@@ -27,6 +27,7 @@
   dev-process ? null,
   pre-commit ? null,
 }: let
+  legacyDarwin = stdenv.hostPlatform.system == "x86_64-darwin";
   scripts = {
     rename-project = writeShellScriptBin "rename-project" ''
       find "$1" \( -type d -name .git -prune \) -o -type f -print0 | xargs -0 sed -i "s/forge/$2/g"
@@ -105,9 +106,11 @@ in
         ssh-to-age
         yq-go
         nixos-anywhere
+      ]
+      ++ lib.optionals (!legacyDarwin) [
         inputs'.home-manager.packages.home-manager
       ]
-      ++ lib.optionals stdenv.isDarwin [
+      ++ lib.optionals (stdenv.isDarwin && !legacyDarwin) [
         inputs'.nix-darwin.packages.darwin-rebuild
       ];
 
