@@ -3,7 +3,7 @@
 
   inputs = {
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:LisaScheers/home-manager/agent/nushell-session-environment";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

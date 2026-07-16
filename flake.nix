@@ -29,7 +29,7 @@
     flake-file.url = "github:denful/flake-file";
     flake-parts.url = "github:hercules-ci/flake-parts";
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:LisaScheers/home-manager/agent/nushell-session-environment";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     homebrew-cask = {
