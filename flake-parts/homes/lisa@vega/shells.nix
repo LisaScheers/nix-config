@@ -78,6 +78,11 @@ in {
     ];
     settings.show_banner = false;
     extraEnv = ''
+      $env.PATH = ([
+        "/run/current-system/sw/bin"
+        "/nix/var/nix/profiles/default/bin"
+      ] | append $env.PATH | uniq)
+
       alias codex = ${codexAlias}
       alias codex-yolo = ${codexYoloAlias}
     '';
