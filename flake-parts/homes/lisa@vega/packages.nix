@@ -1,5 +1,7 @@
 {pkgs, ...}: {
   home.packages = with pkgs; [
+    claude-code
+    claudex
     ghostty-bin.terminfo
     git
     htop

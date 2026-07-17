@@ -4,6 +4,10 @@
     codex = inputs.codex-cli-nix.packages.${final.stdenv.hostPlatform.system}.default;
   };
 
+  claudex = final: _prev: {
+    claudex = final.callPackage ../_packages/claudex.nix {};
+  };
+
   # Nushell's integration tests assume a full TTY/shell nesting; they fail
   # on Darwin Nix builds with EPERM / wrong SHLVL (see env.rs SHLVL checks).
   nushell = _final: prev: {
@@ -16,18 +20,21 @@
       else prev.nushell;
   };
 
-  default = final: prev: (codex final prev) // (nushell final prev);
+  default = final: prev: (claudex final prev) // (codex final prev) // (nushell final prev);
 in {
   flake.overlays = {
-    inherit codex default nushell;
+    inherit claudex codex default nushell;
   };
 
-  perSystem = {system, ...}: {
-    _module.args.pkgs = import inputs.nixpkgs {
+  perSystem = {system, ...}: let
+    pkgs = import inputs.nixpkgs {
       inherit system;
       overlays = [default];
       config.allowUnfree = true;
     };
+  in {
+    _module.args.pkgs = pkgs;
+    packages.claudex = pkgs.claudex;
   };
 
   flake-file.inputs.codex-cli-nix = {
